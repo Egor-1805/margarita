@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Фон без скруглений (maskable — обрезается снаружи) -->
+  <rect width="512" height="512" fill="#ffb347"/>
+
+  <!-- Масштабируем содержимое в safe zone (80%) -->
+  <g transform="translate(51.2,51.2) scale(0.8)">
+    <!-- Тело -->
+    <rect x="136" y="390" width="240" height="130" rx="40" fill="#e84393"/>
+
+    <!-- Шея -->
+    <rect x="228" y="338" width="56" height="62" rx="20" fill="#fddbb4"/>
+
+    <!-- Кудрявые волосы — задний слой -->
+    <circle cx="200" cy="168" r="44" fill="#3d1c02"/>
+    <circle cx="235" cy="148" r="42" fill="#3d1c02"/>
+    <circle cx="275" cy="145" r="44" fill="#3d1c02"/>
+    <circle cx="312" cy="158" r="42" fill="#3d1c02"/>
+    <circle cx="338" cy="180" r="40" fill="#3d1c02"/>
+    <circle cx="172" cy="192" r="40" fill="#3d1c02"/>
+
+    <circle cx="148" cy="258" r="36" fill="#5a2800"/>
+    <circle cx="137" cy="300" r="34" fill="#5a2800"/>
+    <circle cx="143" cy="340" r="32" fill="#5a2800"/>
+    <circle cx="154" cy="375" r="30" fill="#5a2800"/>
+
+    <circle cx="364" cy="258" r="36" fill="#5a2800"/>
+    <circle cx="375" cy="300" r="34" fill="#5a2800"/>
+    <circle cx="369" cy="340" r="32" fill="#5a2800"/>
+    <circle cx="358" cy="375" r="30" fill="#5a2800"/>
+
+    <!-- Голова -->
+    <ellipse cx="256" cy="298" rx="102" ry="112" fill="#fddbb4"/>
+
+    <!-- Брови -->
+    <path d="M205 248 Q220 238 238 246" fill="none" stroke="#3d1c02" stroke-width="7" stroke-linecap="round"/>
+    <path d="M274 246 Q292 238 307 248" fill="none" stroke="#3d1c02" stroke-width="7" stroke-linecap="round"/>
+
+    <!-- Глаза -->
+    <ellipse cx="222" cy="278" rx="21" ry="23" fill="#fff"/>
+    <ellipse cx="290" cy="278" rx="21" ry="23" fill="#fff"/>
+    <circle cx="224" cy="282" r="14" fill="#5a2800"/>
+    <circle cx="292" cy="282" r="14" fill="#5a2800"/>
+    <circle cx="225" cy="283" r="7" fill="#1a0800"/>
+    <circle cx="293" cy="283" r="7" fill="#1a0800"/>
+    <circle cx="230" cy="276" r="5" fill="#fff"/>
+    <circle cx="298" cy="276" r="5" fill="#fff"/>
+
+    <!-- Нос -->
+    <ellipse cx="256" cy="310" rx="9" ry="6" fill="#e09a6a"/>
+
+    <!-- Румяна -->
+    <ellipse cx="198" cy="318" rx="24" ry="15" fill="#f4a0a0" opacity="0.5"/>
+    <ellipse cx="314" cy="318" rx="24" ry="15" fill="#f4a0a0" opacity="0.5"/>
+
+    <!-- Улыбка -->
+    <path d="M226 336 Q256 362 286 336" fill="none" stroke="#c0644a" stroke-width="6" stroke-linecap="round"/>
+    <path d="M233 340 Q256 356 279 340 Q256 354 233 340Z" fill="#fff"/>
+
+    <!-- Цветок -->
+    <g transform="translate(336 190)">
+      <circle cx="0" cy="-15" r="11" fill="#ff6eb4"/>
+      <circle cx="11" cy="-10" r="11" fill="#ff6eb4"/>
+      <circle cx="14" cy="2" r="11" fill="#ff6eb4"/>
+      <circle cx="7" cy="13" r="11" fill="#ff6eb4"/>
+      <circle cx="-7" cy="13" r="11" fill="#ff6eb4"/>
+      <circle cx="-14" cy="2" r="11" fill="#ff6eb4"/>
+      <circle cx="-11" cy="-10" r="11" fill="#ff6eb4"/>
+      <circle cx="0" cy="0" r="12" fill="#ffe066"/>
+    </g>
+  </g>
+</svg>

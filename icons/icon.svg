@@ -1,0 +1,96 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffe0b2"/>
+      <stop offset="1" stop-color="#ffb347"/>
+    </linearGradient>
+    <linearGradient id="skin" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#fddbb4"/>
+      <stop offset="1" stop-color="#f5bc8a"/>
+    </linearGradient>
+    <linearGradient id="hair" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#3d1c02"/>
+      <stop offset="1" stop-color="#6b2e00"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Фон -->
+  <rect width="512" height="512" rx="112" fill="url(#bg)"/>
+
+  <!-- Тело / плечи -->
+  <ellipse cx="256" cy="480" rx="130" ry="60" fill="#e84393"/>
+  <rect x="136" y="400" width="240" height="90" rx="30" fill="#e84393"/>
+
+  <!-- Шея -->
+  <rect x="228" y="340" width="56" height="60" rx="20" fill="url(#skin)"/>
+
+  <!-- Голова -->
+  <ellipse cx="256" cy="300" rx="100" ry="110" fill="url(#skin)"/>
+
+  <!-- Кудрявые волосы — задний слой (бока и верх) -->
+  <!-- Большой тёмный контур волос -->
+  <ellipse cx="256" cy="260" rx="122" ry="130" fill="url(#hair)"/>
+
+  <!-- Волосы сверху — кудряшки -->
+  <circle cx="200" cy="165" r="38" fill="#3d1c02"/>
+  <circle cx="232" cy="148" r="36" fill="#3d1c02"/>
+  <circle cx="268" cy="145" r="38" fill="#3d1c02"/>
+  <circle cx="306" cy="155" r="36" fill="#3d1c02"/>
+  <circle cx="332" cy="175" r="34" fill="#3d1c02"/>
+  <circle cx="175" cy="190" r="34" fill="#3d1c02"/>
+
+  <!-- Боковые кудряшки левые -->
+  <circle cx="148" cy="255" r="32" fill="#5a2800"/>
+  <circle cx="138" cy="295" r="30" fill="#5a2800"/>
+  <circle cx="145" cy="335" r="28" fill="#5a2800"/>
+  <circle cx="155" cy="368" r="26" fill="#5a2800"/>
+
+  <!-- Боковые кудряшки правые -->
+  <circle cx="364" cy="255" r="32" fill="#5a2800"/>
+  <circle cx="374" cy="295" r="30" fill="#5a2800"/>
+  <circle cx="367" cy="335" r="28" fill="#5a2800"/>
+  <circle cx="357" cy="368" r="26" fill="#5a2800"/>
+
+  <!-- Лицо поверх волос -->
+  <ellipse cx="256" cy="305" rx="95" ry="105" fill="url(#skin)"/>
+
+  <!-- Брови -->
+  <path d="M205 248 Q220 240 235 248" fill="none" stroke="#3d1c02" stroke-width="7" stroke-linecap="round"/>
+  <path d="M277 248 Q292 240 307 248" fill="none" stroke="#3d1c02" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- Глаза -->
+  <ellipse cx="222" cy="278" rx="20" ry="22" fill="#fff"/>
+  <ellipse cx="290" cy="278" rx="20" ry="22" fill="#fff"/>
+  <circle cx="224" cy="282" r="13" fill="#3d1c02"/>
+  <circle cx="292" cy="282" r="13" fill="#3d1c02"/>
+  <circle cx="224" cy="282" r="6" fill="#000"/>
+  <circle cx="292" cy="282" r="6" fill="#000"/>
+  <!-- Блики в глазах -->
+  <circle cx="229" cy="276" r="4" fill="#fff"/>
+  <circle cx="297" cy="276" r="4" fill="#fff"/>
+
+  <!-- Нос -->
+  <ellipse cx="256" cy="308" rx="10" ry="6" fill="#e8a070"/>
+
+  <!-- Щёчки румяные -->
+  <ellipse cx="200" cy="315" rx="22" ry="14" fill="#f4a0a0" opacity="0.5"/>
+  <ellipse cx="312" cy="315" rx="22" ry="14" fill="#f4a0a0" opacity="0.5"/>
+
+  <!-- Улыбка -->
+  <path d="M225 335 Q256 360 287 335" fill="none" stroke="#c0644a" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- Зубки -->
+  <path d="M232 338 Q256 354 280 338 Q256 352 232 338Z" fill="#fff"/>
+
+  <!-- Цветок в волосах -->
+  <g transform="translate(330 200)">
+    <circle cx="0" cy="-14" r="10" fill="#ff6eb4"/>
+    <circle cx="10" cy="-10" r="10" fill="#ff6eb4"/>
+    <circle cx="13" cy="0" r="10" fill="#ff6eb4"/>
+    <circle cx="7" cy="10" r="10" fill="#ff6eb4"/>
+    <circle cx="-7" cy="10" r="10" fill="#ff6eb4"/>
+    <circle cx="-13" cy="0" r="10" fill="#ff6eb4"/>
+    <circle cx="-10" cy="-10" r="10" fill="#ff6eb4"/>
+    <circle cx="0" cy="0" r="11" fill="#ffe066"/>
+  </g>
+</svg>
