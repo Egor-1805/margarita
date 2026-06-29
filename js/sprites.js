@@ -1,15 +1,37 @@
 // ============================================================
-//  Пиксельная отрисовка мира на canvas (вид сверху)
+//  Улучшенная отрисовка мира на canvas
 // ============================================================
 
-const rect = (ctx, x, y, w, h, c) => { ctx.fillStyle = c; ctx.fillRect(x | 0, y | 0, Math.ceil(w), Math.ceil(h)); };
+// Скруглённый прямоугольник — полифил для старых браузеров
+function rr(ctx, x, y, w, h, r) {
+  if (typeof r === 'number') r = [r, r, r, r];
+  const [tl, tr, br, bl] = r;
+  ctx.beginPath();
+  ctx.moveTo(x + tl, y);
+  ctx.lineTo(x + w - tr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + tr);
+  ctx.lineTo(x + w, y + h - br);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - br, y + h);
+  ctx.lineTo(x + bl, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - bl);
+  ctx.lineTo(x, y + tl);
+  ctx.quadraticCurveTo(x, y, x + tl, y);
+  ctx.closePath();
+}
+
+function fillRR(ctx, x, y, w, h, r, color) {
+  ctx.fillStyle = color;
+  rr(ctx, x, y, w, h, r);
+  ctx.fill();
+}
 
 // ---------- земля ----------
 export function drawGround(ctx, cam, vw, vh, T) {
-  // базовая трава
-  ctx.fillStyle = '#7cc257';
+  const grad = ctx.createLinearGradient(0, 0, 0, vh);
+  grad.addColorStop(0, '#6db84d');
+  grad.addColorStop(1, '#82c460');
+  ctx.fillStyle = grad;
   ctx.fillRect(0, 0, vw, vh);
-  // клетчатый оттенок травы
   const x0 = Math.floor(cam.x / T), y0 = Math.floor(cam.y / T);
   for (let ty = y0 - 1; ty < y0 + vh / T + 1; ty++) {
     for (let tx = x0 - 1; tx < x0 + vw / T + 1; tx++) {
@@ -21,52 +43,133 @@ export function drawGround(ctx, cam, vw, vh, T) {
   }
 }
 
-// дорожки + площадь
-export function drawPaths(ctx, cam, T, paths, plaza) {
+// дорожки
+export function drawPaths(ctx, cam, T, paths) {
   for (const p of paths) {
-    rect(ctx, p.x * T - cam.x, p.y * T - cam.y, p.w * T, p.h * T, '#cdb892');
-    rect(ctx, p.x * T - cam.x, p.y * T - cam.y, p.w * T, 2, '#bda579');
+    const px = p.x * T - cam.x, py = p.y * T - cam.y;
+    ctx.fillStyle = '#d4c4a0';
+    ctx.fillRect(px, py, p.w * T, p.h * T);
+    ctx.fillStyle = '#c2ad88';
+    ctx.fillRect(px, py, p.w * T, 1.5);
+    ctx.fillRect(px, py + p.h * T - 1.5, p.w * T, 1.5);
+    // плиточный узор
+    ctx.strokeStyle = 'rgba(180,160,120,0.3)';
+    ctx.lineWidth = 0.5;
+    const ts = T * 0.6;
+    for (let i = 0; i < p.w * T; i += ts) {
+      ctx.beginPath(); ctx.moveTo(px + i, py); ctx.lineTo(px + i, py + p.h * T); ctx.stroke();
+    }
   }
 }
 
-// фонтан на площади
+// фонтан
 export function drawFountain(ctx, sx, sy, T) {
-  rect(ctx, sx - T * 0.9, sy - T * 0.9, T * 1.8, T * 1.8, '#9aa6b2');
-  rect(ctx, sx - T * 0.7, sy - T * 0.7, T * 1.4, T * 1.4, '#bcdfe8');
-  rect(ctx, sx - T * 0.25, sy - T * 0.5, T * 0.5, T, '#9aa6b2');
-  rect(ctx, sx - T * 0.16, sy - T * 0.7, T * 0.32, T * 0.4, '#cfeefa');
+  // чаша — тень
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(sx + 4, sy + 4, T * 1.05, T * 0.6, 0, 0, Math.PI * 2); ctx.fill();
+  // чаша
+  ctx.fillStyle = '#8a9db0';
+  ctx.beginPath(); ctx.ellipse(sx, sy, T * 1.05, T * 0.62, 0, 0, Math.PI * 2); ctx.fill();
+  // вода с градиентом
+  const wg = ctx.createRadialGradient(sx - T * 0.2, sy - T * 0.1, 0, sx, sy, T * 0.85);
+  wg.addColorStop(0, '#b8e8f8'); wg.addColorStop(1, '#72c0dc');
+  ctx.fillStyle = wg;
+  ctx.beginPath(); ctx.ellipse(sx, sy, T * 0.82, T * 0.48, 0, 0, Math.PI * 2); ctx.fill();
+  // бликна воде
+  ctx.fillStyle = 'rgba(255,255,255,0.35)';
+  ctx.beginPath(); ctx.ellipse(sx - T * 0.28, sy - T * 0.15, T * 0.22, T * 0.1, -0.3, 0, Math.PI * 2); ctx.fill();
+  // столб
+  ctx.fillStyle = '#9aa6b2';
+  ctx.beginPath(); ctx.ellipse(sx, sy, T * 0.1, T * 0.06, 0, 0, Math.PI * 2); ctx.fill();
+  // струи воды
+  ctx.strokeStyle = 'rgba(190,235,250,0.75)'; ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.quadraticCurveTo(sx + Math.cos(a) * T * 0.32, sy + Math.sin(a) * T * 0.18 - T * 0.2, sx + Math.cos(a) * T * 0.46, sy + Math.sin(a) * T * 0.26);
+    ctx.stroke();
+  }
 }
 
 // ---------- здание ----------
 export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
-  const dark = shade(loc.color, -0.25);
-  // тень
-  rect(ctx, sx + 4, sy + h - 6, w, 10, 'rgba(0,0,0,0.12)');
-  // стены
-  rect(ctx, sx, sy + T * 0.7, w, h - T * 0.7, '#fbf3e6');
-  rect(ctx, sx, sy + h - 8, w, 8, shade('#fbf3e6', -0.12));
-  // крыша
-  rect(ctx, sx - 4, sy, w + 8, T * 0.85, loc.color);
-  rect(ctx, sx - 4, sy + T * 0.7, w + 8, 6, dark);
+  const dark = shade(loc.color, -0.28);
+  const light = shade(loc.color, 0.18);
+
+  // тень под зданием
+  ctx.fillStyle = 'rgba(0,0,0,0.16)';
+  ctx.beginPath(); ctx.ellipse(sx + w / 2, sy + h + 5, w / 2.2, 7, 0, 0, Math.PI * 2); ctx.fill();
+
+  // стены с лёгким градиентом
+  const wallG = ctx.createLinearGradient(sx, 0, sx + w, 0);
+  wallG.addColorStop(0, '#ede5d8');
+  wallG.addColorStop(0.45, '#fdf6ee');
+  wallG.addColorStop(1, '#e8e0d2');
+  ctx.fillStyle = wallG;
+  rr(ctx, sx, sy + T * 0.65, w, h - T * 0.65, [0, 0, 4, 4]); ctx.fill();
+
+  // нижний плинтус
+  ctx.fillStyle = shade('#fbf3e6', -0.1);
+  rr(ctx, sx, sy + h - 9, w, 9, [0, 0, 4, 4]); ctx.fill();
+
+  // крыша с градиентом
+  const roofG = ctx.createLinearGradient(sx, sy, sx, sy + T * 0.8);
+  roofG.addColorStop(0, light); roofG.addColorStop(1, loc.color);
+  ctx.fillStyle = roofG;
+  rr(ctx, sx - 4, sy, w + 8, T * 0.82, [5, 5, 0, 0]); ctx.fill();
+  // карниз под крышей
+  ctx.fillStyle = dark;
+  ctx.fillRect(sx - 4, sy + T * 0.7, w + 8, 5);
+
   // окна
-  const wy = sy + T * 1.0;
-  rect(ctx, sx + w * 0.16, wy, T * 0.55, T * 0.55, '#bfe6ef');
-  rect(ctx, sx + w * 0.62, wy, T * 0.55, T * 0.55, '#bfe6ef');
-  // дверь (по центру снизу)
-  const dw = T * 0.7, dx = sx + w / 2 - dw / 2, dy = sy + h - T * 0.95;
-  rect(ctx, dx, dy, dw, T * 0.95, dark);
-  rect(ctx, dx + dw - 6, dy + T * 0.4, 4, 4, '#ffe08a');
-  // вывеска с эмодзи
+  drawWindow(ctx, sx + w * 0.13, sy + T * 1.0, T * 0.52, T * 0.54);
+  drawWindow(ctx, sx + w * 0.6,  sy + T * 1.0, T * 0.52, T * 0.54);
+
+  // ступенька
+  const dw = T * 0.74, dx = sx + w / 2 - dw / 2;
+  ctx.fillStyle = shade('#fbf3e6', -0.18);
+  rr(ctx, dx - 5, sy + h - 5, dw + 10, 5, 2); ctx.fill();
+
+  // дверь
+  ctx.fillStyle = dark;
+  rr(ctx, dx, sy + h - T * 0.98, dw, T * 0.98, [3, 3, 0, 0]); ctx.fill();
+  // блик на двери
+  ctx.fillStyle = 'rgba(255,255,255,0.1)';
+  ctx.fillRect(dx + 3, sy + h - T * 0.95, dw / 2.2 - 2, T * 0.4);
+  // ручка
+  ctx.fillStyle = '#ffe08a';
+  ctx.beginPath(); ctx.arc(dx + dw - 8, sy + h - T * 0.48, 3, 0, Math.PI * 2); ctx.fill();
+
+  // эмодзи
   ctx.font = `${Math.round(T * 0.7)}px serif`;
   ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText(loc.emoji, sx + w / 2, sy + T * 0.36);
+  ctx.fillText(loc.emoji, sx + w / 2, sy + T * 0.37);
+
   // подпись
-  ctx.font = `bold ${Math.round(T * 0.34)}px -apple-system,system-ui,sans-serif`;
-  const label = loc.name;
-  const lw = ctx.measureText(label).width + 10;
-  rect(ctx, sx + w / 2 - lw / 2, sy - T * 0.62, lw, T * 0.5, 'rgba(44,42,38,0.85)');
+  ctx.font = `bold ${Math.round(T * 0.32)}px -apple-system,system-ui,sans-serif`;
+  const lw = ctx.measureText(loc.name).width + 12;
+  fillRR(ctx, sx + w / 2 - lw / 2, sy - T * 0.62, lw, T * 0.48, 4, 'rgba(30,28,24,0.84)');
   ctx.fillStyle = '#fff';
-  ctx.fillText(label, sx + w / 2, sy - T * 0.37);
+  ctx.fillText(loc.name, sx + w / 2, sy - T * 0.37);
+}
+
+function drawWindow(ctx, x, y, w, h) {
+  // внешняя рамка
+  ctx.fillStyle = '#7aa0b8';
+  rr(ctx, x - 1.5, y - 1.5, w + 3, h + 3, 3); ctx.fill();
+  // стекло
+  const g = ctx.createLinearGradient(x, y, x + w, y + h);
+  g.addColorStop(0, '#ceeaf6'); g.addColorStop(0.5, '#dff3fa'); g.addColorStop(1, '#b8e2f0');
+  ctx.fillStyle = g;
+  rr(ctx, x, y, w, h, 2); ctx.fill();
+  // перекладина
+  ctx.strokeStyle = '#7aa0b8'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(x + w / 2, y); ctx.lineTo(x + w / 2, y + h); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x, y + h / 2); ctx.lineTo(x + w, y + h / 2); ctx.stroke();
+  // блик
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  ctx.fillRect(x + 2, y + 2, w * 0.38, h * 0.38);
 }
 
 // светящийся хот-спот у двери
@@ -76,115 +179,320 @@ export function drawHotspot(ctx, sx, sy, T, pulse) {
   g.addColorStop(0, 'rgba(255,225,120,0.85)');
   g.addColorStop(1, 'rgba(255,225,120,0)');
   ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(sx, sy, r, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.9)';
   ctx.font = `${Math.round(T * 0.5)}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.fillText('❗', sx, sy - T * 0.05);
 }
 
-// ---------- персонаж (вид сверху) ----------
+// ---------- персонаж ----------
 export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
-  const skin = look.skin || '#f1c9a5';
-  const shirt = look.shirt || '#e07aa8';
-  const hair = look.hairColor || '#5a3b22';
-  const u = T / 26; // единица масштаба
-  const bob = moving ? Math.sin(phase) * 1.4 : 0;
-  const yy = sy + bob;
+  const skin  = look.skin      || '#f1c9a5';
+  const shirt = look.shirt     || '#e07aa8';
+  const hair  = look.hairColor || '#5a3b22';
+  const u     = T / 26;
+  const bob   = moving ? Math.sin(phase) * 1.4 : 0;
+  const yy    = sy + bob;
+  const girl  = look.gender !== 'm';
+
   // тень
-  ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 9 * u, 4 * u, 0, 0, 7); ctx.fill();
-  const girl = look.gender !== 'm';
-  // ноги (шагают)
-  const step = moving ? Math.sin(phase) * 3 * u : 0;
-  const legc = girl ? skin : '#46587f';
-  rect(ctx, sx - 5 * u, yy + 6 * u + step, 4 * u, 6 * u, legc);
-  rect(ctx, sx + 1 * u, yy + 6 * u - step, 4 * u, 6 * u, legc);
-  // тело (рубашка/платье)
-  if (girl) { ctx.fillStyle = shirt; ctx.beginPath(); ctx.moveTo(sx - 7 * u, yy - 2 * u); ctx.lineTo(sx + 7 * u, yy - 2 * u); ctx.lineTo(sx + 9 * u, yy + 9 * u); ctx.lineTo(sx - 9 * u, yy + 9 * u); ctx.closePath(); ctx.fill(); }
-  else rect(ctx, sx - 6.5 * u, yy - 2 * u, 13 * u, 10 * u, shirt);
-  rect(ctx, sx - 7 * u, yy - 2 * u, 14 * u, 2 * u, shade(shirt, 0.12));
-  // голова
-  ctx.fillStyle = skin; ctx.beginPath(); ctx.arc(sx, yy - 6 * u, 6.2 * u, 0, 7); ctx.fill();
-  // волосы (сверху/по бокам)
-  ctx.fillStyle = hair;
-  ctx.beginPath(); ctx.arc(sx, yy - 8 * u, 6.4 * u, Math.PI, 0); ctx.fill();
-  rect(ctx, sx - 6.4 * u, yy - 8 * u, 2.4 * u, 6 * u, hair);
-  rect(ctx, sx + 4 * u, yy - 8 * u, 2.4 * u, 6 * u, hair);
-  if (look.hairStyle === 'curly') {
-    ctx.fillStyle = hair;
-    for (const [dx, dy] of [[-6, -9], [-3, -11], [0, -11.5], [3, -11], [6, -9]]) {
-      ctx.beginPath(); ctx.arc(sx + dx * u, yy + dy * u, 2.6 * u, 0, 7); ctx.fill();
-    }
-  } else if (look.hairStyle === 'ponytail') {
-    rect(ctx, sx + 5 * u, yy - 9 * u, 3 * u, 9 * u, hair);
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 9 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+
+  // ноги
+  const step     = moving ? Math.sin(phase) * 3 * u : 0;
+  const legColor = girl ? shade(skin, -0.14) : '#3a4e72';
+  const shoeColor = girl ? '#c0507a' : '#2a3a58';
+  // левая нога
+  ctx.fillStyle = legColor;
+  rr(ctx, sx - 5.5 * u, yy + 6 * u + step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+  ctx.fillStyle = shoeColor;
+  rr(ctx, sx - 6 * u, yy + 10.8 * u + step, 5 * u, 2.2 * u, 1); ctx.fill();
+  // правая нога
+  ctx.fillStyle = legColor;
+  rr(ctx, sx + 1.7 * u, yy + 6 * u - step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+  ctx.fillStyle = shoeColor;
+  rr(ctx, sx + 1.2 * u, yy + 10.8 * u - step, 5 * u, 2.2 * u, 1); ctx.fill();
+
+  // тело
+  if (girl) {
+    // платье — трапеция
+    ctx.fillStyle = shirt;
+    ctx.beginPath();
+    ctx.moveTo(sx - 6.5 * u, yy - 2 * u);
+    ctx.lineTo(sx + 6.5 * u, yy - 2 * u);
+    ctx.lineTo(sx + 8.8 * u, yy + 9.5 * u);
+    ctx.lineTo(sx - 8.8 * u, yy + 9.5 * u);
+    ctx.closePath(); ctx.fill();
+    // складки
+    ctx.strokeStyle = 'rgba(0,0,0,0.07)'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(sx - 2.5 * u, yy + 0.5 * u); ctx.lineTo(sx - 4.5 * u, yy + 9.5 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 2.5 * u, yy + 0.5 * u); ctx.lineTo(sx + 4.5 * u, yy + 9.5 * u); ctx.stroke();
+  } else {
+    // рубашка мужская
+    const sg = ctx.createLinearGradient(sx - 7 * u, 0, sx + 7 * u, 0);
+    sg.addColorStop(0, shade(shirt, -0.1)); sg.addColorStop(0.5, shirt); sg.addColorStop(1, shade(shirt, -0.1));
+    ctx.fillStyle = sg;
+    rr(ctx, sx - 7 * u, yy - 2 * u, 14 * u, 10 * u, 2); ctx.fill();
+    // пуговицы
+    ctx.fillStyle = shade(shirt, 0.2);
+    for (let i = 0; i < 3; i++) { ctx.beginPath(); ctx.arc(sx, yy + i * 2.6 * u, 0.7 * u, 0, Math.PI * 2); ctx.fill(); }
   }
-  // глаза
+  // плечи
+  ctx.fillStyle = shade(shirt, 0.12);
+  rr(ctx, sx - 8 * u, yy - 3.2 * u, 16 * u, 2.8 * u, 3); ctx.fill();
+
+  // шея
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.ellipse(sx, yy - 3.8 * u, 2.3 * u, 2.1 * u, 0, 0, Math.PI * 2); ctx.fill();
+
+  // голова
+  const hg = ctx.createRadialGradient(sx - 1.5 * u, yy - 8 * u, 0, sx, yy - 6 * u, 7.5 * u);
+  hg.addColorStop(0, shade(skin, 0.14)); hg.addColorStop(1, shade(skin, -0.06));
+  ctx.fillStyle = hg;
+  ctx.beginPath(); ctx.arc(sx, yy - 6 * u, 6.8 * u, 0, Math.PI * 2); ctx.fill();
+
+  // волосы
+  drawHair(ctx, sx, yy, u, hair, look.hairStyle, girl);
+
+  // брови
+  ctx.strokeStyle = shade(hair, -0.25); ctx.lineWidth = 1.3 * u; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(sx - 4.2 * u, yy - 9.5 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.2 * u, sx - 0.5 * u, yy - 9.5 * u); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx + 0.5 * u, yy - 9.5 * u); ctx.quadraticCurveTo(sx + 2 * u, yy - 10.2 * u, sx + 4.2 * u, yy - 9.5 * u); ctx.stroke();
+
+  // белки глаз
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(sx - 2.8 * u, yy - 6.8 * u, 2 * u, 1.6 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + 2.8 * u, yy - 6.8 * u, 2 * u, 1.6 * u, 0, 0, Math.PI * 2); ctx.fill();
+  // зрачки
   ctx.fillStyle = '#3a2a22';
-  ctx.fillRect((sx - 3 * u) | 0, (yy - 6 * u) | 0, Math.ceil(1.6 * u), Math.ceil(1.6 * u));
-  ctx.fillRect((sx + 1.4 * u) | 0, (yy - 6 * u) | 0, Math.ceil(1.6 * u), Math.ceil(1.6 * u));
-  // шляпа
-  drawHat(ctx, sx, yy - 10 * u, u, look.hat);
+  ctx.beginPath(); ctx.arc(sx - 2.8 * u, yy - 6.8 * u, 1.2 * u, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx + 2.8 * u, yy - 6.8 * u, 1.2 * u, 0, Math.PI * 2); ctx.fill();
+  // блики в глазах
+  ctx.fillStyle = 'rgba(255,255,255,0.75)';
+  ctx.beginPath(); ctx.arc(sx - 2.2 * u, yy - 7.3 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx + 3.4 * u, yy - 7.3 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+
+  // нос
+  ctx.strokeStyle = shade(skin, -0.2); ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.arc(sx + 0.8 * u, yy - 4.2 * u, 1.3 * u, Math.PI * 0.65, Math.PI * 0.35, true); ctx.stroke();
+
+  // улыбка
+  ctx.strokeStyle = shade(skin, -0.32); ctx.lineWidth = 1.1 * u;
+  ctx.beginPath(); ctx.arc(sx, yy - 2.2 * u, 2.3 * u, Math.PI * 0.18, Math.PI * 0.82); ctx.stroke();
+
+  drawHat(ctx, sx, yy - 12.5 * u, u, look.hat);
+}
+
+function drawHair(ctx, sx, yy, u, hair, style, girl) {
+  ctx.fillStyle = hair;
+  if (style === 'curly') {
+    const curls = [[-6, -9], [-3.5, -11.8], [0, -13], [3.5, -11.8], [6, -9], [-5, -7.2], [5, -7.2], [0, -8]];
+    for (const [dx, dy] of curls) { ctx.beginPath(); ctx.arc(sx + dx * u, yy + dy * u, 3.4 * u, 0, Math.PI * 2); ctx.fill(); }
+    // блеск
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.beginPath(); ctx.arc(sx - 2 * u, yy - 12.5 * u, 2.2 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (style === 'ponytail') {
+    ctx.beginPath(); ctx.arc(sx, yy - 8.8 * u, 6.8 * u, Math.PI, 0); ctx.fill();
+    ctx.fillRect(sx - 6.8 * u, yy - 10.5 * u, 2.6 * u, 6 * u);
+    ctx.fillRect(sx + 4.2 * u, yy - 10.5 * u, 2.6 * u, 6 * u);
+    // хвостик
+    ctx.beginPath(); ctx.moveTo(sx + 5 * u, yy - 8 * u);
+    ctx.quadraticCurveTo(sx + 10 * u, yy - 4 * u, sx + 7 * u, yy + 2 * u);
+    ctx.quadraticCurveTo(sx + 11 * u, yy - 3 * u, sx + 8 * u, yy - 8 * u);
+    ctx.closePath(); ctx.fill();
+  } else {
+    // короткие
+    ctx.beginPath(); ctx.arc(sx, yy - 9 * u, 7 * u, Math.PI, 0); ctx.fill();
+    ctx.fillRect(sx - 7 * u, yy - 10.5 * u, 2.6 * u, 6.5 * u);
+    ctx.fillRect(sx + 4.4 * u, yy - 10.5 * u, 2.6 * u, 6.5 * u);
+    if (!girl) {
+      // чёлка
+      ctx.fillRect(sx - 5.5 * u, yy - 12.5 * u, 11 * u, 3 * u);
+    }
+  }
 }
 
 function drawHat(ctx, x, y, u, hat) {
   if (!hat || hat === 'none') return;
-  if (hat === 'gorra') { rect(ctx, x - 6 * u, y, 12 * u, 3 * u, '#e76f51'); rect(ctx, x + 4 * u, y + 2 * u, 5 * u, 2 * u, '#c2563c'); }
-  else if (hat === 'sombrero') { rect(ctx, x - 9 * u, y + 2 * u, 18 * u, 2 * u, '#e7c873'); rect(ctx, x - 5 * u, y - 2 * u, 10 * u, 4 * u, '#e7c873'); }
-  else if (hat === 'boina') { rect(ctx, x - 6 * u, y, 12 * u, 3 * u, '#46587f'); }
-  else if (hat === 'corona') { ctx.fillStyle = '#f4c430'; ctx.beginPath(); ctx.moveTo(x - 6 * u, y + 3 * u); ctx.lineTo(x - 6 * u, y - 1 * u); ctx.lineTo(x - 2 * u, y + 1 * u); ctx.lineTo(x, y - 3 * u); ctx.lineTo(x + 2 * u, y + 1 * u); ctx.lineTo(x + 6 * u, y - 1 * u); ctx.lineTo(x + 6 * u, y + 3 * u); ctx.fill(); }
-  else if (hat === 'lazo') { ctx.fillStyle = '#e23a6e'; rect(ctx, x - 5 * u, y, 4 * u, 4 * u, '#e23a6e'); rect(ctx, x + 1 * u, y, 4 * u, 4 * u, '#e23a6e'); rect(ctx, x - 1 * u, y + 1 * u, 2 * u, 2 * u, '#c22a58'); }
-  else if (hat === 'flor') { ctx.fillStyle = '#f15b9a'; ctx.beginPath(); ctx.arc(x + 5 * u, y + 1 * u, 2.4 * u, 0, 7); ctx.fill(); }
+  if (hat === 'gorra') {
+    ctx.fillStyle = '#e76f51';
+    rr(ctx, x - 6.5 * u, y, 13 * u, 3.5 * u, 2); ctx.fill();
+    // козырёк
+    ctx.fillStyle = '#c2563c';
+    ctx.beginPath();
+    ctx.ellipse(x + 1 * u, y + 2.5 * u, 6 * u, 1.8 * u, 0.2, 0, Math.PI * 2); ctx.fill();
+    // блик на кепке
+    ctx.fillStyle = 'rgba(255,255,255,0.15)';
+    ctx.beginPath(); ctx.arc(x - 2 * u, y + 0.5 * u, 4 * u, Math.PI, 0); ctx.fill();
+  } else if (hat === 'sombrero') {
+    ctx.fillStyle = '#e7c873';
+    ctx.beginPath(); ctx.ellipse(x, y + 3 * u, 11 * u, 3 * u, 0, 0, Math.PI * 2); ctx.fill();
+    rr(ctx, x - 5 * u, y - 3 * u, 10 * u, 6 * u, 3); ctx.fill();
+    ctx.strokeStyle = '#c9a850'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(x, y + 3 * u, 11 * u, 3 * u, 0, 0, Math.PI * 2); ctx.stroke();
+  } else if (hat === 'boina') {
+    ctx.fillStyle = '#46587f';
+    ctx.beginPath(); ctx.ellipse(x - 2 * u, y + 1 * u, 7.5 * u, 3.5 * u, -0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = shade('#46587f', 0.2);
+    ctx.beginPath(); ctx.arc(x - 2 * u, y + 1 * u, 2 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (hat === 'corona') {
+    ctx.fillStyle = '#f4c430';
+    ctx.beginPath();
+    ctx.moveTo(x - 6 * u, y + 3 * u); ctx.lineTo(x - 6 * u, y - 1 * u); ctx.lineTo(x - 2 * u, y + 1 * u);
+    ctx.lineTo(x, y - 4 * u); ctx.lineTo(x + 2 * u, y + 1 * u); ctx.lineTo(x + 6 * u, y - 1 * u);
+    ctx.lineTo(x + 6 * u, y + 3 * u); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#c9a215'; ctx.lineWidth = 0.8; ctx.stroke();
+    ctx.fillStyle = '#e23a6e'; ctx.beginPath(); ctx.arc(x, y - 2.5 * u, 1.3 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#3a8a5f';
+    ctx.beginPath(); ctx.arc(x - 4 * u, y + 0.5 * u, 1 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(x + 4 * u, y + 0.5 * u, 1 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (hat === 'lazo') {
+    ctx.fillStyle = '#e23a6e';
+    ctx.beginPath(); ctx.ellipse(x - 3.5 * u, y + 2 * u, 3.8 * u, 2.5 * u, -0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 3.5 * u, y + 2 * u, 3.8 * u, 2.5 * u, 0.3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#c22a58'; ctx.beginPath(); ctx.arc(x, y + 2 * u, 2 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (hat === 'flor') {
+    ctx.fillStyle = '#f15b9a';
+    for (let i = 0; i < 5; i++) {
+      const a = (i / 5) * Math.PI * 2;
+      ctx.beginPath(); ctx.ellipse(x + 5 * u + Math.cos(a) * 2.2 * u, y + 1 * u + Math.sin(a) * 2.2 * u, 2.2 * u, 1.3 * u, a, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(x + 5 * u, y + 1 * u, 1.6 * u, 0, Math.PI * 2); ctx.fill();
+  }
 }
 
 // ---------- NPC ----------
 export function drawNPC(ctx, sx, sy, T, pal, phase) {
   const u = T / 26;
+  const bob = Math.sin(phase * 0.5) * 0.8;
+  const yy = sy + bob;
+
+  // тень
   ctx.fillStyle = 'rgba(0,0,0,0.18)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 8 * u, 4 * u, 0, 0, 7); ctx.fill();
-  const sway = Math.sin(phase) * 1.5 * u;
-  rect(ctx, sx - 6 * u, sy - 1 * u + sway * 0, 12 * u, 9 * u, pal.shirt);
-  ctx.fillStyle = pal.skin; ctx.beginPath(); ctx.arc(sx, sy - 6 * u, 5.6 * u, 0, 7); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 8 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+
+  // ноги
+  ctx.fillStyle = shade(pal.skin, -0.12);
+  rr(ctx, sx - 4.5 * u, yy + 6 * u, 3.5 * u, 5 * u, 1.5); ctx.fill();
+  rr(ctx, sx + 1 * u,   yy + 6 * u, 3.5 * u, 5 * u, 1.5); ctx.fill();
+
+  // тело
+  const ng = ctx.createLinearGradient(sx - 6 * u, 0, sx + 6 * u, 0);
+  ng.addColorStop(0, shade(pal.shirt, -0.1)); ng.addColorStop(0.5, pal.shirt); ng.addColorStop(1, shade(pal.shirt, -0.1));
+  ctx.fillStyle = ng;
+  rr(ctx, sx - 6 * u, yy - 1 * u, 12 * u, 9 * u, 2); ctx.fill();
+  // плечи
+  ctx.fillStyle = shade(pal.shirt, 0.12);
+  rr(ctx, sx - 7 * u, yy - 2.5 * u, 14 * u, 2.8 * u, 2); ctx.fill();
+
+  // шея
+  ctx.fillStyle = pal.skin;
+  ctx.beginPath(); ctx.ellipse(sx, yy - 2.5 * u, 2.1 * u, 1.9 * u, 0, 0, Math.PI * 2); ctx.fill();
+
+  // голова
+  const nhg = ctx.createRadialGradient(sx - 1 * u, yy - 7.5 * u, 0, sx, yy - 6 * u, 7 * u);
+  nhg.addColorStop(0, shade(pal.skin, 0.12)); nhg.addColorStop(1, shade(pal.skin, -0.06));
+  ctx.fillStyle = nhg;
+  ctx.beginPath(); ctx.arc(sx, yy - 6 * u, 6.2 * u, 0, Math.PI * 2); ctx.fill();
+
+  // волосы NPC
   ctx.fillStyle = pal.hair;
-  ctx.beginPath(); ctx.arc(sx, sy - 8 * u, 5.8 * u, Math.PI, 0); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx, yy - 8.8 * u, 6.4 * u, Math.PI, 0); ctx.fill();
+  ctx.fillRect(sx - 6.4 * u, yy - 10.2 * u, 2.5 * u, 5.8 * u);
+  ctx.fillRect(sx + 3.9 * u, yy - 10.2 * u, 2.5 * u, 5.8 * u);
+
+  // глаза NPC
+  ctx.fillStyle = '#fff';
+  ctx.beginPath(); ctx.ellipse(sx - 2.4 * u, yy - 6.5 * u, 1.7 * u, 1.4 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + 2.4 * u, yy - 6.5 * u, 1.7 * u, 1.4 * u, 0, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = '#3a2a22';
-  ctx.fillRect((sx - 2.6 * u) | 0, (sy - 6 * u) | 0, Math.ceil(1.4 * u), Math.ceil(1.4 * u));
-  ctx.fillRect((sx + 1.2 * u) | 0, (sy - 6 * u) | 0, Math.ceil(1.4 * u), Math.ceil(1.4 * u));
-  // значок «поговорить»
-  ctx.font = `${Math.round(T * 0.42)}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  ctx.fillText('💬', sx, sy - 13 * u - (1 + Math.sin(phase)) * 1.5 * u);
+  ctx.beginPath(); ctx.arc(sx - 2.4 * u, yy - 6.5 * u, 1 * u, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx + 2.4 * u, yy - 6.5 * u, 1 * u, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.65)';
+  ctx.beginPath(); ctx.arc(sx - 2 * u, yy - 7 * u, 0.42 * u, 0, Math.PI * 2); ctx.fill();
+
+  // значок разговора — с мягким фоном
+  const floatY = yy - 14 * u - (1 + Math.sin(phase)) * 1.5 * u;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.beginPath(); ctx.arc(sx, floatY, T * 0.24, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(100,150,200,0.4)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.arc(sx, floatY, T * 0.24, 0, Math.PI * 2); ctx.stroke();
+  ctx.font = `${Math.round(T * 0.38)}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('💬', sx, floatY);
 }
 
-// ---------- дерево / куст ----------
+// ---------- дерево ----------
 export function drawTree(ctx, sx, sy, T) {
-  ctx.fillStyle = 'rgba(0,0,0,0.14)'; ctx.beginPath(); ctx.ellipse(sx, sy + T * 0.4, T * 0.4, T * 0.16, 0, 0, 7); ctx.fill();
-  rect(ctx, sx - T * 0.07, sy, T * 0.14, T * 0.45, '#6b4f2a');
-  ctx.fillStyle = '#3f8a4f'; ctx.beginPath(); ctx.arc(sx, sy - T * 0.15, T * 0.42, 0, 7); ctx.fill();
-  ctx.fillStyle = '#4fa05c'; ctx.beginPath(); ctx.arc(sx - T * 0.18, sy - T * 0.28, T * 0.22, 0, 7); ctx.fill();
+  // тень
+  ctx.fillStyle = 'rgba(0,0,0,0.15)';
+  ctx.beginPath(); ctx.ellipse(sx + T * 0.1, sy + T * 0.43, T * 0.4, T * 0.14, 0.2, 0, Math.PI * 2); ctx.fill();
+  // ствол
+  ctx.fillStyle = '#7a5a30';
+  rr(ctx, sx - T * 0.065, sy + T * 0.06, T * 0.13, T * 0.38, 3); ctx.fill();
+  // тёмный слой кроны (тень внутри)
+  ctx.fillStyle = '#2f6538';
+  ctx.beginPath(); ctx.arc(sx, sy - T * 0.08, T * 0.46, 0, Math.PI * 2); ctx.fill();
+  // основная крона
+  ctx.fillStyle = '#3f8848';
+  ctx.beginPath(); ctx.arc(sx, sy - T * 0.12, T * 0.42, 0, Math.PI * 2); ctx.fill();
+  // боковые кустики
+  ctx.fillStyle = '#4e9e58';
+  ctx.beginPath(); ctx.arc(sx - T * 0.2, sy - T * 0.26, T * 0.28, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx + T * 0.18, sy - T * 0.24, T * 0.26, 0, Math.PI * 2); ctx.fill();
+  // верхний светлый слой
+  ctx.fillStyle = '#60b268';
+  ctx.beginPath(); ctx.arc(sx, sy - T * 0.32, T * 0.22, 0, Math.PI * 2); ctx.fill();
+  // блик
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath(); ctx.arc(sx - T * 0.12, sy - T * 0.3, T * 0.13, 0, Math.PI * 2); ctx.fill();
 }
 
 // ---------- сундук ----------
 export function drawChest(ctx, sx, sy, T, open, pulse) {
-  const w = T * 0.66, h = T * 0.5;
-  // свечение у закрытого
+  const w = T * 0.7, h = T * 0.52;
   if (!open) {
     const r = T * (0.55 + 0.12 * pulse);
     const g = ctx.createRadialGradient(sx, sy, 2, sx, sy, r);
-    g.addColorStop(0, 'rgba(255,225,120,0.7)'); g.addColorStop(1, 'rgba(255,225,120,0)');
-    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, 7); ctx.fill();
+    g.addColorStop(0, 'rgba(255,225,120,0.75)'); g.addColorStop(1, 'rgba(255,225,120,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(sx, sy, r, 0, Math.PI * 2); ctx.fill();
   }
-  ctx.fillStyle = 'rgba(0,0,0,0.16)'; ctx.beginPath(); ctx.ellipse(sx, sy + h * 0.55, w * 0.6, 4, 0, 0, 7); ctx.fill();
-  const body = open ? '#8a7d6a' : '#9a6b3a';
-  const lid = open ? '#a99a86' : '#b5824a';
-  rect(ctx, sx - w / 2, sy - h * 0.1, w, h * 0.6, body);            // низ
-  rect(ctx, sx - w / 2, sy - h * 0.5, w, h * 0.45, lid);           // крышка
-  rect(ctx, sx - w / 2, sy - h * 0.12, w, 3, '#6b4a26');           // обод
-  if (!open) { rect(ctx, sx - 3, sy - h * 0.18, 6, 8, '#f4c430'); rect(ctx, sx - 4, sy - h * 0.5, 8, 3, '#f4c430'); }
-  else { ctx.fillStyle = '#6b6256'; ctx.font = `${Math.round(T * 0.3)}px serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; }
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + h * 0.58, w * 0.6, 4, 0, 0, Math.PI * 2); ctx.fill();
+
+  const bodyC = open ? '#8a7d6a' : '#9a6b3a';
+  const lidC  = open ? '#a99a86' : '#c08a50';
+  ctx.fillStyle = bodyC;
+  rr(ctx, sx - w / 2, sy - h * 0.1, w, h * 0.6, [0, 0, 4, 4]); ctx.fill();
+  ctx.strokeStyle = shade(bodyC, -0.2); ctx.lineWidth = 1.5;
+  ctx.strokeRect(sx - w / 2 + 3, sy - h * 0.1 + 3, w - 6, h * 0.6 - 4);
+
+  const lg = ctx.createLinearGradient(sx - w / 2, sy - h * 0.5, sx + w / 2, sy - h * 0.1);
+  lg.addColorStop(0, shade(lidC, 0.12)); lg.addColorStop(1, lidC);
+  ctx.fillStyle = lg;
+  rr(ctx, sx - w / 2, sy - h * 0.5, w, h * 0.45, [4, 4, 0, 0]); ctx.fill();
+
+  ctx.fillStyle = '#f4c430';
+  ctx.fillRect(sx - w / 2, sy - h * 0.12, w, 3);
+  rr(ctx, sx - w / 2, sy - h * 0.5, w, 3, 2); ctx.fill();
+
+  if (!open) {
+    rr(ctx, sx - 4.5, sy - h * 0.45, 9, 10, 2); ctx.fill();
+    ctx.fillStyle = shade('#f4c430', -0.22);
+    ctx.beginPath(); ctx.arc(sx, sy - h * 0.18, 3, 0, Math.PI * 2); ctx.fill();
+  }
 }
 
 export function drawBush(ctx, sx, sy, T) {
-  ctx.fillStyle = '#479a52'; ctx.beginPath(); ctx.arc(sx, sy, T * 0.3, 0, 7); ctx.fill();
-  ctx.fillStyle = '#56ad60'; ctx.beginPath(); ctx.arc(sx - T * 0.12, sy - T * 0.08, T * 0.16, 0, 7); ctx.fill();
+  ctx.fillStyle = 'rgba(0,0,0,0.12)';
+  ctx.beginPath(); ctx.ellipse(sx + T * 0.06, sy + T * 0.33, T * 0.34, T * 0.1, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#469450';
+  ctx.beginPath(); ctx.arc(sx, sy, T * 0.32, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#58ad62';
+  ctx.beginPath(); ctx.arc(sx - T * 0.14, sy - T * 0.1, T * 0.2, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx + T * 0.13, sy - T * 0.08, T * 0.18, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.beginPath(); ctx.arc(sx - T * 0.1, sy - T * 0.12, T * 0.1, 0, Math.PI * 2); ctx.fill();
 }
 
 // ---------- утилита затемнения цвета ----------

@@ -233,7 +233,7 @@ function screenSettings(ov) {
   scr.querySelectorAll('.seg-btn[data-voice]').forEach(b => b.onclick = () => {
     g.settings.voice = b.dataset.voice; store.save();
     scr.querySelectorAll('.seg-btn[data-voice]').forEach(x => x.classList.toggle('on', x === b));
-    import('./audio.js').then(a => a.speak(voiceTestPhrases[g.lang || 'es'] || voiceTestPhrases.es));
+    import('./audio.js').then(a => a.previewVoice());
   });
   scr.querySelectorAll('.seg-btn[data-gender]').forEach(b => b.onclick = () => {
     const gd = b.dataset.gender;

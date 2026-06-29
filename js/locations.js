@@ -24,7 +24,7 @@ export const FORMATS = ['match', 'complete', 'memory', 'translate', 'picture', '
 export const LOCATIONS = [
   { id: 'salon',    name: 'Салон красоты',  es: 'Salón de Belleza', emoji: '💄', color: '#e07aa8', tx: 3,  ty: 3,  w: 5, h: 4, themes: [12] },
   { id: 'cafe',     name: 'Кафе',           es: 'Café',             emoji: '☕', color: '#e76f51', tx: 13, ty: 3,  w: 5, h: 4, themes: [5] },
-  { id: 'teatro',   name: 'Театр',          es: 'Teatro',           emoji: '🎭', color: '#9a5ea7', tx: 23, ty: 3,  w: 5, h: 4, themes: [3] },
+  { id: 'teatro',   name: 'Театр',          es: 'Teatro',           emoji: '🎭', color: '#9a5ea7', tx: 23, ty: 3,  w: 5, h: 4, themes: [1, 11] },
   { id: 'love',     name: 'Дом любви',      es: 'Casa del Amor',    emoji: '💗', color: '#e23a6e', tx: 33, ty: 3,  w: 5, h: 4, themes: [13] },
   { id: 'home',     name: 'Дом и быт',      es: 'La Casa',          emoji: '🏠', color: '#9a8c98', tx: 3,  ty: 11, w: 5, h: 4, themes: [8] },
   { id: 'bank',     name: 'Банк',           es: 'Banco',            emoji: '🏦', color: '#5b8e7d', tx: 37, ty: 11, w: 5, h: 4, themes: [2, 7] },

@@ -59,7 +59,8 @@ export function createWorld(canvas, look, handlers) {
     vw = r.width; vh = r.height;
     canvas.width = vw * dpr; canvas.height = vh * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    ctx.imageSmoothingEnabled = false;
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
     T = Math.max(30, Math.min(52, vw / 11));
   }
 

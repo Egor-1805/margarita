@@ -14,6 +14,7 @@ const LANG_CONFIG = {
     female: ['mónica', 'monica', 'paulina', 'marisol', 'lucía', 'lucia', 'esperanza',
              'sabina', 'helena', 'laura', 'penélope', 'penelope', 'conchita', 'sara', 'elvira'],
     male: ['jorge', 'diego', 'carlos', 'enrique', 'pablo', 'juan', 'miguel', 'antonio'],
+    preview: 'Hola, ¿cómo estás? Me alegra verte.',
   },
   en: {
     bcp: 'en-US',
@@ -22,19 +23,33 @@ const LANG_CONFIG = {
              'zoe', 'siri', 'ava', 'allison', 'joanna', 'ivy', 'kendra', 'kimberly'],
     male: ['alex', 'tom', 'daniel', 'david', 'mark', 'james', 'guy', 'fred',
            'christopher', 'matthew', 'reed', 'ryan', 'oliver'],
+    preview: 'Hello! How are you today? Nice to meet you.',
   },
   de: {
     bcp: 'de-DE',
     altBcp: ['de-'],
     female: ['anna', 'hedda', 'petra', 'katja', 'vicki', 'helga', 'ida', 'marlene', 'ingrid'],
     male: ['hans', 'stefan', 'markus', 'yannick', 'jan', 'michael', 'max', 'konrad', 'daniel'],
+    preview: 'Hallo! Wie geht es Ihnen heute? Schön, Sie zu treffen.',
   },
+};
+
+// Параметры pitch/rate по полу — разница очень заметная
+const VOICE_PARAMS = {
+  female: { pitch: 1.15, rate: 0.90 },
+  male:   { pitch: 0.72, rate: 0.85 },
 };
 
 function pickVoice(cfg, pref) {
   const byBcp = voices.filter(v => v.lang.toLowerCase().startsWith(cfg.bcp.toLowerCase().slice(0, 5)));
   const byAlt = voices.filter(v => cfg.altBcp.some(p => v.lang.toLowerCase().startsWith(p.toLowerCase())));
-  const pool = byBcp.length ? byBcp : byAlt;
+  let pool = byBcp.length ? byBcp : byAlt;
+
+  // Если для языка вообще нет голосов — берём любой с нужным lang-префиксом
+  if (!pool.length) {
+    const langPrefix = cfg.bcp.slice(0, 2).toLowerCase();
+    pool = voices.filter(v => v.lang.toLowerCase().startsWith(langPrefix));
+  }
   if (!pool.length) return null;
 
   const nameList = pref === 'male' ? cfg.male : cfg.female;
@@ -54,7 +69,7 @@ function pickVoice(cfg, pref) {
     if (v) return v;
   }
 
-  // 4. for male pref — try to exclude known-female names before fallback
+  // 4. для male — пробуем исключить известные женские имена
   if (pref === 'male') {
     const femaleNames = cfg.female;
     const notFemale = pool.filter(v => !femaleNames.some(n => v.name.toLowerCase().includes(n)));
@@ -64,22 +79,47 @@ function pickVoice(cfg, pref) {
   return pool[0];
 }
 
+function buildUtterance(text, lang, cfg, pref) {
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = cfg.bcp;
+
+  const v = pickVoice(cfg, pref);
+  if (v) u.voice = v;
+
+  // Всегда применяем pitch по полу — не зависим только от имени голоса
+  const params = VOICE_PARAMS[pref] || VOICE_PARAMS.female;
+  // Лёгкая вариативность rate для живого звучания
+  const rateJitter = Math.random() * 0.06 - 0.03;
+  u.pitch  = params.pitch;
+  u.rate   = params.rate + rateJitter;
+  u.volume = 1.0;
+
+  return u;
+}
+
 export function speak(text) {
   if (!('speechSynthesis' in window)) return;
   const g = store.getGame();
   if (!g.settings.sound) return;
   try {
     speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
     const lang = g.lang || 'es';
-    const cfg = LANG_CONFIG[lang] || LANG_CONFIG.es;
+    const cfg  = LANG_CONFIG[lang] || LANG_CONFIG.es;
     const pref = g.settings.voice || 'female';
-    u.lang = cfg.bcp;
-    const v = pickVoice(cfg, pref);
-    if (v) u.voice = v;
-    u.rate = 0.88;
-    u.pitch = pref === 'male' ? 0.92 : 1.02;
-    u.volume = 1.0;
+    const u    = buildUtterance(text, lang, cfg, pref);
+    speechSynthesis.speak(u);
+  } catch (e) { /* ignore */ }
+}
+
+export function previewVoice() {
+  if (!('speechSynthesis' in window)) return;
+  try {
+    const g    = store.getGame();
+    const lang = g.lang || 'es';
+    const cfg  = LANG_CONFIG[lang] || LANG_CONFIG.es;
+    const pref = g.settings.voice || 'female';
+    speechSynthesis.cancel();
+    const u = buildUtterance(cfg.preview, lang, cfg, pref);
     speechSynthesis.speak(u);
   } catch (e) { /* ignore */ }
 }
