@@ -152,6 +152,7 @@ export function createWorld(canvas, look, handlers) {
   // ---------- рендер ----------
   function render() {
     const cam = state.cam;
+    const pulse = (Math.sin(performance.now() / 300) + 1) / 2;
     S.drawGround(ctx, cam, vw, vh, T);
     S.drawPaths(ctx, cam, T, paths, PLAZA);
     S.drawFountain(ctx, PLAZA.x * T - cam.x, PLAZA.y * T - cam.y, T);
@@ -175,7 +176,6 @@ export function createWorld(canvas, look, handlers) {
       S.drawBuilding(ctx, b.tx * T - cam.x, b.ty * T - cam.y, b.w * T, b.h * T, b.loc, T);
     }
     // хот-споты у дверей
-    const pulse = (Math.sin(performance.now() / 300) + 1) / 2;
     for (const b of buildings) {
       S.drawHotspot(ctx, b.door.x * T - cam.x, b.door.y * T - cam.y, T, pulse);
     }

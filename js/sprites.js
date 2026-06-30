@@ -404,15 +404,31 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   ctx.fillStyle = faceG;
   ctx.beginPath(); ctx.arc(sx, yy - 6 * u, 6.4 * u, 0, Math.PI * 2); ctx.fill();
 
-  // брови
-  ctx.strokeStyle = shade(hair, -0.25); ctx.lineWidth = 1.3 * u; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(sx - 4.2 * u, yy - 9.5 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.2 * u, sx - 0.5 * u, yy - 9.5 * u); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sx + 0.5 * u, yy - 9.5 * u); ctx.quadraticCurveTo(sx + 2 * u, yy - 10.2 * u, sx + 4.2 * u, yy - 9.5 * u); ctx.stroke();
+  // брови — разные для мальчика и девочки
+  ctx.lineCap = 'round';
+  if (girl) {
+    // тонкие изящные брови с большим зазором
+    ctx.strokeStyle = shade(hair, -0.15); ctx.lineWidth = 0.75 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 3.8 * u, yy - 9.6 * u); ctx.quadraticCurveTo(sx - 2.2 * u, yy - 10.4 * u, sx - 1.2 * u, yy - 9.8 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 1.2 * u, yy - 9.8 * u); ctx.quadraticCurveTo(sx + 2.2 * u, yy - 10.4 * u, sx + 3.8 * u, yy - 9.6 * u); ctx.stroke();
+  } else {
+    // мужские — чуть толще и прямее
+    ctx.strokeStyle = shade(hair, -0.25); ctx.lineWidth = 1.4 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 4.0 * u, yy - 9.4 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.0 * u, sx - 1.0 * u, yy - 9.4 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 1.0 * u, yy - 9.4 * u); ctx.quadraticCurveTo(sx + 2 * u, yy - 10.0 * u, sx + 4.0 * u, yy - 9.4 * u); ctx.stroke();
+  }
 
   // белки глаз
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.ellipse(sx - 2.8 * u, yy - 6.8 * u, 2 * u, 1.6 * u, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.beginPath(); ctx.ellipse(sx + 2.8 * u, yy - 6.8 * u, 2 * u, 1.6 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx - 2.8 * u, yy - 6.8 * u, 2 * u, girl ? 1.8 * u : 1.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(sx + 2.8 * u, yy - 6.8 * u, 2 * u, girl ? 1.8 * u : 1.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+  // ресницы у девочки
+  if (girl) {
+    ctx.strokeStyle = shade(hair, -0.2); ctx.lineWidth = 0.7 * u;
+    for (const [ex, ea] of [[-4.5, -0.4], [-3.2, -0.6], [-1.8, -0.7], [1.8, -Math.PI + 0.7], [3.2, -Math.PI + 0.6], [4.5, -Math.PI + 0.4]]) {
+      ctx.beginPath(); ctx.moveTo(sx + ex * u, yy - 8.4 * u); ctx.lineTo(sx + ex * u + Math.cos(ea) * 1.2 * u, yy - 8.4 * u + Math.sin(ea) * 1.2 * u); ctx.stroke();
+    }
+  }
   // зрачки
   ctx.fillStyle = '#3a2a22';
   ctx.beginPath(); ctx.arc(sx - 2.8 * u, yy - 6.8 * u, 1.2 * u, 0, Math.PI * 2); ctx.fill();
@@ -423,12 +439,26 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   ctx.beginPath(); ctx.arc(sx + 3.4 * u, yy - 7.3 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
 
   // нос
-  ctx.strokeStyle = shade(skin, -0.2); ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.arc(sx + 0.8 * u, yy - 4.2 * u, 1.3 * u, Math.PI * 0.65, Math.PI * 0.35, true); ctx.stroke();
+  ctx.strokeStyle = shade(skin, girl ? -0.12 : -0.22); ctx.lineWidth = (girl ? 0.7 : 0.95) * u; ctx.lineCap = 'round';
+  if (girl) {
+    // маленький аккуратный носик — две точки-ноздри
+    ctx.beginPath(); ctx.arc(sx - 0.9 * u, yy - 4.6 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 0.9 * u, yy - 4.6 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+  } else {
+    ctx.beginPath(); ctx.arc(sx + 0.8 * u, yy - 4.2 * u, 1.3 * u, Math.PI * 0.65, Math.PI * 0.35, true); ctx.stroke();
+  }
 
-  // улыбка
-  ctx.strokeStyle = shade(skin, -0.32); ctx.lineWidth = 1.1 * u;
-  ctx.beginPath(); ctx.arc(sx, yy - 2.2 * u, 2.3 * u, Math.PI * 0.18, Math.PI * 0.82); ctx.stroke();
+  // губы / улыбка
+  if (girl) {
+    // розовые губки
+    ctx.fillStyle = '#e88fa0';
+    ctx.beginPath(); ctx.ellipse(sx, yy - 2.8 * u, 1.8 * u, 0.85 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = shade(skin, -0.28); ctx.lineWidth = 0.9 * u;
+    ctx.beginPath(); ctx.arc(sx, yy - 2.0 * u, 1.8 * u, Math.PI * 0.22, Math.PI * 0.78); ctx.stroke();
+  } else {
+    ctx.strokeStyle = shade(skin, -0.32); ctx.lineWidth = 1.1 * u;
+    ctx.beginPath(); ctx.arc(sx, yy - 2.2 * u, 2.3 * u, Math.PI * 0.18, Math.PI * 0.82); ctx.stroke();
+  }
 
   drawHat(ctx, sx, yy - 12.5 * u, u, look.hat);
 }
