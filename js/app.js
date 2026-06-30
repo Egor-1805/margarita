@@ -317,7 +317,7 @@ function showGenderPicker() {
 const TUTORIAL_STEPS = [
   {
     emoji: '👋',
-    text: 'Привет! Я — милашка Aya, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
+    text: 'Привет! Я — милашка Айя, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
   },
   {
     emoji: '🏛️',
@@ -346,10 +346,8 @@ const TUTORIAL_STEPS = [
 ];
 
 function runTutorial() {
+  world && world.pause();
   return new Promise(resolve => {
-    const g = store.getGame();
-    if (g.tutorialDone) { resolve(); return; }
-
     let step = 0;
 
     const ayaSVG = `<svg viewBox="0 0 80 90" width="80" height="90" xmlns="http://www.w3.org/2000/svg">
@@ -410,7 +408,7 @@ function runTutorial() {
 
       ov.querySelector('.tut-inner').innerHTML = `
         <div class="tut-aya">${ayaSVG}</div>
-        <div class="tut-name">Aya</div>
+        <div class="tut-name">Айя</div>
         <div class="tut-bubble">
           <div class="tut-emoji">${s.emoji}</div>
           <p class="tut-text">${s.text}</p>
@@ -435,8 +433,6 @@ function runTutorial() {
 
     const finish = () => {
       ov.remove();
-      g.tutorialDone = true;
-      store.save();
       world && world.resume();
       resolve();
     };
@@ -454,13 +450,13 @@ async function talkAya() {
     const g = store.getGame();
     const dayKey = store.todayKey();
     if (g.ayaGiftDay === dayKey) {
-      toast('🌸 Aya улыбается, но бонус уже дала сегодня!');
+      toast('🌸 Айя улыбается, но бонус уже дала сегодня!');
       return;
     }
     await new Promise((resolve) => {
       const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:2rem 1.5rem">
         <div style="font-size:3.5rem;margin-bottom:.5rem">🌸</div>
-        <h2 style="margin:.25rem 0;font-size:1.4rem">Aya</h2>
+        <h2 style="margin:.25rem 0;font-size:1.4rem">Айя</h2>
         <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Бонус от милашки!</div>
         <div style="font-size:2.5rem;font-weight:700;color:#e6b800">🪙 +50</div>
         <button class="mg-btn" id="ayaOk" style="margin-top:1.5rem">Спасибо! 😊</button>
@@ -471,7 +467,7 @@ async function talkAya() {
     g.ayaGiftDay = dayKey;
     store.addRewards(50, 0);
     store.save(); hud();
-    toast('🌸 +50 🪙 от Aya!');
+    toast('🌸 +50 🪙 от Айи!');
   } finally { world.resume(); }
 }
 
@@ -596,7 +592,7 @@ function init() {
   }
   if (!store.getGame().lang) showLangPicker();
   else if (!store.getGame().pickedGender) showGenderPicker();
-  else if (!store.getGame().tutorialDone) runTutorial();
+  else runTutorial();
   if (used > 0) setTimeout(() => toast(`🧊 Заморозка спасла серию (×${used})`), 700);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

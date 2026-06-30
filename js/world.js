@@ -143,7 +143,7 @@ export function createWorld(canvas, look, handlers) {
       if (d < bestD) { bestD = d; best = { type: 'monument', ref: mon, label: mon.label }; }
     }
     const da = Math.hypot(state.px - aya.x, state.py - aya.y - 0.3);
-    if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Aya' }; }
+    if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Айя' }; }
     if ((best && best.ref) !== (state.nearby && state.nearby.ref)) {
       state.nearby = best;
       handlers.onNearby && handlers.onNearby(best);
@@ -200,8 +200,8 @@ export function createWorld(canvas, look, handlers) {
       ctx.font = `bold ${fs}px sans-serif`;
       ctx.textAlign = 'center';
       const ny = ay - T * 0.72;
-      ctx.strokeStyle = '#7b3fa5'; ctx.lineWidth = 3; ctx.strokeText('Aya', ax, ny);
-      ctx.fillStyle = '#fff'; ctx.fillText('Aya', ax, ny);
+      ctx.strokeStyle = '#7b3fa5'; ctx.lineWidth = 3; ctx.strokeText('Айя', ax, ny);
+      ctx.fillStyle = '#fff'; ctx.fillText('Айя', ax, ny);
       ctx.restore();
     };
     const ents = [
