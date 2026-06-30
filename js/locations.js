@@ -261,9 +261,16 @@ export function makeDialogue() {
   const pool = CARDS.filter(c => c.region === t.pool && c.es.split(' ').length <= 4);
   if (!pool.length) { const r = responds[0]; return { kind: 'respond', npcEs: r.npcEs, npcRu: r.npcRu, answer: r.answer, options: shuffle(r.options) }; }
   const target = pool[(Math.random() * pool.length) | 0];
-  const distr = shuffle(pool.filter(c => c !== target)).slice(0, 2).map(c => bare(c.es));
+  let distrPool = pool.filter(c => c !== target);
+  if (distrPool.length < 2) {
+    distrPool = CARDS.filter(c => c !== target && c.es.split(' ').length <= 3 && c.region === t.pool);
+  }
+  if (distrPool.length < 2) {
+    distrPool = CARDS.filter(c => c !== target && c.es.split(' ').length <= 3);
+  }
+  const distr = shuffle(distrPool).slice(0, 2).map(c => bare(c.es));
   const options = shuffle([bare(target.es), ...distr]);
-  return { kind: 'fill', npcEs: t.npcEs, npcRu: t.npcRu, youEs: t.youEs, youRu: t.youRu, answer: bare(target.es), options, card: target };
+  return { kind: 'fill', npcEs: t.npcEs, npcRu: t.npcRu, youEs: t.youEs, youRu: t.youRu, hint: target.ru, answer: bare(target.es), options, card: target };
 }
 
 // ---------- подбор слов по теме через SRS ----------

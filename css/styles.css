@@ -402,4 +402,21 @@ input[type=range]{width:100%;accent-color:var(--brand)}
   .mg-tile-face{background:#34302a;color:var(--ink)}
   .done2-stats div{background:#2e2a26}
   .gp-av{background:linear-gradient(180deg,#23303f,#243425)}
+  .mem-card{background:#3a5f8a}
+  .type-input{background:#2e2a26;color:var(--ink)}
 }
+
+/* memory-grid (alias классы для совместимости) */
+.memory-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;padding:12px}
+.mem-card{background:var(--brand,#4d908e);color:#fff;border-radius:10px;aspect-ratio:1;display:flex;
+  align-items:center;justify-content:center;font-size:1rem;font-weight:bold;cursor:pointer;
+  transition:background .2s,transform .15s;user-select:none;text-align:center;padding:4px}
+.mem-card.open{background:var(--accent,#e76f51)}
+.mem-card.matched{background:#43aa8b;opacity:.8;cursor:default}
+.mem-card:active{transform:scale(.95)}
+
+/* type-game (alias классы для совместимости) */
+.type-input{font-size:1.2rem;padding:10px 14px;border:2px solid var(--line,#ccc);border-radius:10px;
+  width:100%;box-sizing:border-box;margin:12px 0;text-align:center}
+.type-input:focus{outline:none;border-color:var(--accent,#e76f51)}
+.type-hint{font-size:.85rem;color:var(--muted,#888);text-align:center;margin-top:4px}
