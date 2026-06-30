@@ -350,47 +350,47 @@ function runTutorial() {
   return new Promise(resolve => {
     let step = 0;
 
-    const ayaSVG = `<svg viewBox="0 0 80 90" width="80" height="90" xmlns="http://www.w3.org/2000/svg">
-      <!-- тело -->
-      <rect x="24" y="58" width="32" height="28" rx="6" fill="#ff80b3"/>
+    const ayaSVG = `<svg viewBox="0 0 80 98" width="80" height="98" xmlns="http://www.w3.org/2000/svg">
+      <!-- платье принцессы -->
+      <rect x="22" y="66" width="36" height="30" rx="8" fill="#ff80b3"/>
+      <path d="M22 96 Q40 86 58 96 L58 90 Q40 80 22 90 Z" fill="#ffd700" opacity="0.85"/>
       <!-- шея -->
-      <ellipse cx="40" cy="58" rx="7" ry="5" fill="#f5c6d8"/>
-      <!-- голова -->
-      <ellipse cx="40" cy="40" rx="20" ry="21" fill="#f5c6d8"/>
+      <ellipse cx="40" cy="66" rx="7" ry="5" fill="#fde0c2"/>
       <!-- волосы задние -->
-      <ellipse cx="40" cy="32" rx="21" ry="16" fill="#7a4520"/>
-      <rect x="19" y="30" width="8" height="18" rx="4" fill="#7a4520"/>
-      <rect x="53" y="30" width="8" height="18" rx="4" fill="#7a4520"/>
-      <!-- лицо поверх волос -->
-      <ellipse cx="40" cy="42" rx="17" ry="18" fill="#f5c6d8"/>
-      <!-- волосы верх (чёлка) -->
-      <ellipse cx="40" cy="24" rx="21" ry="10" fill="#7a4520"/>
+      <ellipse cx="40" cy="40" rx="22" ry="18" fill="#1a1410"/>
+      <rect x="17" y="38" width="8" height="24" rx="4" fill="#1a1410"/>
+      <rect x="55" y="38" width="8" height="24" rx="4" fill="#1a1410"/>
+      <!-- голова -->
+      <ellipse cx="40" cy="50" rx="18" ry="19" fill="#fde0c2"/>
+      <!-- волосы верх (прямая чёлка) -->
+      <path d="M18 38 Q40 18 62 38 Q60 30 40 27 Q20 30 18 38 Z" fill="#1a1410"/>
+      <!-- корона -->
+      <path d="M22 30 L26 14 L33 24 L40 10 L47 24 L54 14 L58 30 Z" fill="#ffd700" stroke="#e0a800" stroke-width="1"/>
+      <circle cx="40" cy="16" r="2.2" fill="#ff5fa0"/>
+      <circle cx="28" cy="22" r="1.6" fill="#5fc8ff"/>
+      <circle cx="52" cy="22" r="1.6" fill="#5fc8ff"/>
+      <rect x="21" y="29" width="38" height="4" rx="1.5" fill="#ffd700" stroke="#e0a800" stroke-width="0.8"/>
       <!-- брови -->
-      <path d="M29 35 Q33 33 36 35" stroke="#5a3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <path d="M44 35 Q47 33 51 35" stroke="#5a3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
-      <!-- глаза -->
-      <ellipse cx="33" cy="41" rx="5" ry="5.5" fill="white"/>
-      <ellipse cx="47" cy="41" rx="5" ry="5.5" fill="white"/>
-      <circle cx="33" cy="42" r="3" fill="#3a2a22"/>
-      <circle cx="47" cy="42" r="3" fill="#3a2a22"/>
-      <circle cx="34.2" cy="40.5" r="1.2" fill="white"/>
-      <circle cx="48.2" cy="40.5" r="1.2" fill="white"/>
-      <!-- ресницы -->
-      <line x1="29" y1="36.5" x2="27.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
-      <line x1="33" y1="35.5" x2="33" y2="33" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
-      <line x1="37" y1="36.5" x2="38.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
-      <line x1="43" y1="36.5" x2="41.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
-      <line x1="47" y1="35.5" x2="47" y2="33" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
-      <line x1="51" y1="36.5" x2="52.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <path d="M28 45 Q32 43 36 45" stroke="#1a1410" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <path d="M44 45 Q48 43 52 45" stroke="#1a1410" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <!-- глаза (миндалевидные) -->
+      <path d="M27 49 Q32.5 45.5 38 49 Q32.5 52.5 27 49 Z" fill="white"/>
+      <path d="M42 49 Q47.5 45.5 53 49 Q47.5 52.5 42 49 Z" fill="white"/>
+      <circle cx="33.5" cy="49" r="2.6" fill="#3a2a1a"/>
+      <circle cx="46.5" cy="49" r="2.6" fill="#3a2a1a"/>
+      <circle cx="34.3" cy="48" r="0.9" fill="white"/>
+      <circle cx="47.3" cy="48" r="0.9" fill="white"/>
       <!-- нос -->
-      <circle cx="38" cy="49" r="1.5" fill="#e8a8b8"/>
-      <circle cx="42" cy="49" r="1.5" fill="#e8a8b8"/>
+      <path d="M40 53 Q41 56 40 57.5" stroke="#e0a888" stroke-width="1" fill="none" stroke-linecap="round"/>
       <!-- губы -->
-      <ellipse cx="40" cy="53.5" rx="5.5" ry="2.2" fill="#e88fa0"/>
-      <path d="M34.5 53.5 Q40 57 45.5 53.5" stroke="#c0607a" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="61.5" rx="5" ry="2" fill="#e8889c"/>
+      <path d="M35 61.5 Q40 64.5 45 61.5" stroke="#c05a72" stroke-width="0.8" fill="none" stroke-linecap="round"/>
       <!-- румянец -->
-      <ellipse cx="27" cy="47" rx="4" ry="2.5" fill="rgba(255,150,150,0.3)"/>
-      <ellipse cx="53" cy="47" rx="4" ry="2.5" fill="rgba(255,150,150,0.3)"/>
+      <ellipse cx="26" cy="55" rx="3.6" ry="2.2" fill="rgba(255,140,150,0.35)"/>
+      <ellipse cx="54" cy="55" rx="3.6" ry="2.2" fill="rgba(255,140,150,0.35)"/>
+      <!-- серьги -->
+      <circle cx="22" cy="58" r="1.4" fill="#ffd700"/>
+      <circle cx="58" cy="58" r="1.4" fill="#ffd700"/>
     </svg>`;
 
     const highlights = {

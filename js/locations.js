@@ -95,7 +95,6 @@ export const MONUMENT_SPOTS = [
   { x:24, y:11, type:'statue',         label:'📜 Статуя',  region:1 },
   { x:16, y:13, type:'arch',           label:'🏛️ Арка',    region:6 },
   { x:28, y:13, type:'obelisk',        label:'🗿 Обелиск', region:2 },
-  { x:24, y:18, type:'fountain_small', label:'⛲ Фонтан',  region:5 },
 ];
 
 // дорожки (визуал)
