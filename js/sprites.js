@@ -185,19 +185,161 @@ export function drawHotspot(ctx, sx, sy, T, pulse) {
   ctx.fillText('❗', sx, sy - T * 0.05);
 }
 
+// ---------- транспорт (рисуется ДО персонажа) ----------
+function drawVehicle(ctx, sx, sy, T, vehicle, phase) {
+  if (!vehicle || vehicle === 'none') return;
+  const u = T / 26;
+  const spin = phase * 4;
+  ctx.save();
+
+  if (vehicle === 'skateboard') {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 12.5 * u, 8 * u, 2 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#c8903a';
+    rr(ctx, sx - 8 * u, sy + 9 * u, 16 * u, 3 * u, 2); ctx.fill();
+    ctx.fillStyle = '#1a1a1a';
+    rr(ctx, sx - 7.5 * u, sy + 9 * u, 15 * u, 1.2 * u, 1); ctx.fill();
+    for (const wx of [-5.5, 5.5]) {
+      ctx.fillStyle = '#333'; ctx.beginPath(); ctx.arc(sx + wx * u, sy + 12.5 * u, 1.8 * u, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#aaa'; ctx.beginPath(); ctx.arc(sx + wx * u, sy + 12.5 * u, 0.7 * u, 0, Math.PI * 2); ctx.fill();
+    }
+  } else if (vehicle === 'bike') {
+    const wr = 5.5 * u;
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 14 * u, 11 * u, 2.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1.6 * u;
+    ctx.beginPath(); ctx.arc(sx - 8 * u, sy + 8 * u, wr, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx + 8 * u, sy + 8 * u, wr, 0, Math.PI * 2); ctx.stroke();
+    ctx.lineWidth = 0.7 * u;
+    for (const cx2 of [-8, 8]) {
+      for (let s = 0; s < 4; s++) {
+        const a = spin + s * Math.PI / 2;
+        ctx.beginPath(); ctx.moveTo(sx + cx2 * u, sy + 8 * u);
+        ctx.lineTo(sx + cx2 * u + Math.cos(a) * wr * 0.85, sy + 8 * u + Math.sin(a) * wr * 0.85); ctx.stroke();
+      }
+    }
+    ctx.strokeStyle = '#e63946'; ctx.lineWidth = 1.6 * u; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(sx - 8 * u, sy + 8 * u); ctx.lineTo(sx - 1 * u, sy + 2 * u); ctx.lineTo(sx + 8 * u, sy + 8 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 1 * u, sy + 2 * u); ctx.lineTo(sx + 5 * u, sy + 3 * u); ctx.stroke();
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 1.2 * u;
+    ctx.beginPath(); ctx.moveTo(sx + 5 * u, sy + 1 * u); ctx.lineTo(sx + 8 * u, sy + 3 * u); ctx.stroke();
+    ctx.fillStyle = '#222'; rr(ctx, sx - 3 * u, sy + 1 * u, 5 * u, 1.5 * u, 1); ctx.fill();
+  } else if (vehicle === 'scooter') {
+    ctx.fillStyle = 'rgba(0,0,0,0.15)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 14 * u, 8 * u, 2 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e63946'; rr(ctx, sx - 4 * u, sy + 3 * u, 8 * u, 6 * u, 3); ctx.fill();
+    ctx.fillStyle = '#aaa'; ctx.fillRect(sx - 0.8 * u, sy - 2 * u, 1.6 * u, 6 * u);
+    ctx.fillRect(sx - 5 * u, sy - 2.5 * u, 10 * u, 1.5 * u);
+    ctx.strokeStyle = '#222'; ctx.lineWidth = 1.6 * u;
+    ctx.beginPath(); ctx.arc(sx + 4 * u, sy + 11 * u, 3.5 * u, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx - 4 * u, sy + 11 * u, 2.5 * u, 0, Math.PI * 2); ctx.stroke();
+  } else if (vehicle === 'horse') {
+    ctx.fillStyle = 'rgba(0,0,0,0.18)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 13 * u, 11 * u, 3 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#8B5A2B';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 6 * u, 10 * u, 5.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx + 9 * u, sy + 1 * u, 3 * u, 4 * u, 0.4, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#5a3010';
+    ctx.beginPath(); ctx.ellipse(sx + 5 * u, sy - 1 * u, 1.5 * u, 4 * u, -0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#111'; ctx.beginPath(); ctx.arc(sx + 9.5 * u, sy - 0.5 * u, 0.8 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7a3a12';
+    const lp = Math.sin(phase) * 2 * u;
+    for (const [lx, s] of [[-5, 1], [-2, -1], [2, -1], [5, 1]]) {
+      ctx.fillRect(sx + lx * u - 1.2 * u, sy + 10 * u + s * lp, 2.4 * u, 4 * u);
+    }
+    ctx.strokeStyle = '#5a3010'; ctx.lineWidth = 2 * u; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(sx - 9 * u, sy + 4 * u);
+    ctx.quadraticCurveTo(sx - 13 * u, sy + 8 * u, sx - 11 * u, sy + 12 * u); ctx.stroke();
+  } else if (vehicle === 'moto') {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 14 * u, 13 * u, 3 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#111'; ctx.lineWidth = 2.2 * u;
+    ctx.beginPath(); ctx.arc(sx - 10 * u, sy + 7 * u, 6.5 * u, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(sx + 10 * u, sy + 7 * u, 6.5 * u, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = '#c0392b'; rr(ctx, sx - 8 * u, sy - 2 * u, 16 * u, 9 * u, 3); ctx.fill();
+    ctx.fillStyle = '#e74c3c'; rr(ctx, sx - 7 * u, sy - 1 * u, 14 * u, 5 * u, 2); ctx.fill();
+    ctx.strokeStyle = '#888'; ctx.lineWidth = 1.5 * u;
+    ctx.beginPath(); ctx.moveTo(sx + 6 * u, sy + 5 * u); ctx.lineTo(sx + 11 * u, sy + 5 * u); ctx.lineTo(sx + 11.5 * u, sy + 8 * u); ctx.stroke();
+    ctx.fillStyle = '#555'; ctx.fillRect(sx - 2 * u, sy - 4 * u, 4 * u, 3 * u);
+    ctx.fillRect(sx - 7 * u, sy - 4 * u, 14 * u, 1.5 * u);
+    ctx.fillStyle = '#ffe08a'; ctx.beginPath(); ctx.arc(sx + 10 * u, sy + 0 * u, 1.5 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (vehicle === 'car') {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 16 * u, 15 * u, 3.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#2980b9'; rr(ctx, sx - 14 * u, sy + 1 * u, 28 * u, 10 * u, 5); ctx.fill();
+    ctx.fillStyle = '#1a5276'; rr(ctx, sx - 9 * u, sy - 5 * u, 18 * u, 7 * u, 4); ctx.fill();
+    ctx.fillStyle = 'rgba(180,220,255,0.7)'; rr(ctx, sx - 7 * u, sy - 4 * u, 14 * u, 5 * u, 2); ctx.fill();
+    for (const [wx, wy] of [[-9, 11], [9, 11]]) {
+      ctx.fillStyle = '#1a1a1a'; ctx.beginPath(); ctx.arc(sx + wx * u, sy + wy * u, 4 * u, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = '#888'; ctx.beginPath(); ctx.arc(sx + wx * u, sy + wy * u, 1.8 * u, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#ffe08a';
+    ctx.beginPath(); ctx.ellipse(sx + 13 * u, sy + 3 * u, 1.8 * u, 1.2 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(sx - 13 * u, sy + 3 * u, 1.8 * u, 1.2 * u, 0, 0, Math.PI * 2); ctx.fill();
+  } else if (vehicle === 'heli') {
+    ctx.fillStyle = 'rgba(0,0,0,0.08)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 17 * u, 14 * u, 3.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#666'; ctx.lineWidth = 1.2 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 10 * u, sy + 11 * u); ctx.lineTo(sx + 10 * u, sy + 11 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 3 * u, sy + 9 * u); ctx.lineTo(sx - 3 * u, sy + 11 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 3 * u, sy + 9 * u); ctx.lineTo(sx + 3 * u, sy + 11 * u); ctx.stroke();
+    ctx.fillStyle = '#f39c12'; ctx.beginPath(); ctx.ellipse(sx, sy + 4 * u, 9 * u, 6 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(150,220,255,0.75)'; ctx.beginPath(); ctx.ellipse(sx + 4 * u, sy + 3 * u, 5 * u, 4.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#e67e22';
+    ctx.beginPath(); ctx.moveTo(sx - 7 * u, sy + 3 * u); ctx.lineTo(sx - 17 * u, sy + 4 * u); ctx.lineTo(sx - 17 * u, sy + 7 * u); ctx.lineTo(sx - 7 * u, sy + 8 * u); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = 'rgba(100,100,100,0.75)'; ctx.lineWidth = 0.8 * u;
+    for (let i = 0; i < 3; i++) {
+      const a = spin * 0.8 + i * Math.PI * 2 / 3;
+      ctx.beginPath(); ctx.moveTo(sx - 17 * u, sy + 5.5 * u);
+      ctx.lineTo(sx - 17 * u + Math.cos(a) * 3.5 * u, sy + 5.5 * u + Math.sin(a) * 3.5 * u); ctx.stroke();
+    }
+    ctx.lineWidth = 1.3 * u;
+    for (let i = 0; i < 3; i++) {
+      const a = spin * 1.5 + i * Math.PI * 2 / 3;
+      ctx.beginPath(); ctx.moveTo(sx, sy - 6 * u);
+      ctx.lineTo(sx + Math.cos(a) * 14 * u, sy - 6 * u + Math.sin(a) * 5 * u); ctx.stroke();
+    }
+  } else if (vehicle === 'yacht') {
+    ctx.fillStyle = 'rgba(0,100,200,0.12)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 14 * u, 15 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+    const hg = ctx.createLinearGradient(sx - 13 * u, 0, sx + 13 * u, 0);
+    hg.addColorStop(0, '#f0f0f0'); hg.addColorStop(1, '#d0d0d0');
+    ctx.fillStyle = hg;
+    ctx.beginPath(); ctx.moveTo(sx - 13 * u, sy + 8 * u); ctx.lineTo(sx + 13 * u, sy + 8 * u);
+    ctx.lineTo(sx + 10 * u, sy + 14 * u); ctx.lineTo(sx - 10 * u, sy + 14 * u); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#2980b9'; ctx.fillRect(sx - 13 * u, sy + 8 * u, 26 * u, 2 * u);
+    ctx.fillStyle = '#c8a060'; rr(ctx, sx - 12 * u, sy + 4 * u, 24 * u, 5 * u, 2); ctx.fill();
+    ctx.strokeStyle = '#999'; ctx.lineWidth = 1.5 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 2 * u, sy + 4 * u); ctx.lineTo(sx - 2 * u, sy - 15 * u); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.92)';
+    ctx.beginPath(); ctx.moveTo(sx - 2 * u, sy - 15 * u); ctx.lineTo(sx + 12 * u, sy - 3 * u); ctx.lineTo(sx - 2 * u, sy + 2 * u); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#ccc'; ctx.lineWidth = 0.6 * u; ctx.stroke();
+  }
+  ctx.restore();
+}
+
 // ---------- персонаж ----------
 export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   const skin  = look.skin      || '#f1c9a5';
   const shirt = look.shirt     || '#e07aa8';
   const hair  = look.hairColor || '#5a3b22';
   const u     = T / 26;
-  const bob   = moving ? Math.sin(phase) * 1.4 : 0;
-  const yy    = sy + bob;
+  const veh   = look.vehicle;
+
+  // рисуем транспорт под персонажем
+  drawVehicle(ctx, sx, sy, T, veh, phase);
+
+  // на некоторых транспортных средствах персонаж сидит выше
+  const vehLift = (veh === 'horse') ? -4 * u : (veh === 'moto' || veh === 'bike' || veh === 'scooter') ? -2 * u : (veh === 'car') ? -3 * u : (veh === 'yacht') ? -2 * u : (veh === 'heli') ? -5 * u : 0;
+  const bob   = moving && !veh ? Math.sin(phase) * 1.4 : (veh === 'horse' ? Math.sin(phase * 3) * 1.2 : 0);
+  const yy    = sy + bob + vehLift;
   const girl  = look.gender !== 'm';
 
-  // тень
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 9 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+  // тень (только без транспорта или для скейтборда)
+  if (!veh || veh === 'none' || veh === 'skateboard') {
+    ctx.fillStyle = 'rgba(0,0,0,0.2)';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 9 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
+  }
 
   // ноги
   const step     = moving ? Math.sin(phase) * 3 * u : 0;

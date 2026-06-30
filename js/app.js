@@ -307,14 +307,14 @@ async function talkAya() {
     const g = store.getGame();
     const dayKey = store.todayKey();
     if (g.ayaGiftDay === dayKey) {
-      toast('🌸 Ая улыбается, но подарок уже дала сегодня!');
+      toast('🌸 Aya улыбается, но бонус уже дала сегодня!');
       return;
     }
     await new Promise((resolve) => {
       const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:2rem 1.5rem">
         <div style="font-size:3.5rem;margin-bottom:.5rem">🌸</div>
-        <h2 style="margin:.25rem 0;font-size:1.4rem">Ая</h2>
-        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Подарок от милашки!</div>
+        <h2 style="margin:.25rem 0;font-size:1.4rem">Aya</h2>
+        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Бонус от милашки!</div>
         <div style="font-size:2.5rem;font-weight:700;color:#e6b800">🪙 +50</div>
         <button class="mg-btn" id="ayaOk" style="margin-top:1.5rem">Спасибо! 😊</button>
       </div></div></div>`);
@@ -324,7 +324,7 @@ async function talkAya() {
     g.ayaGiftDay = dayKey;
     store.addRewards(50, 0);
     store.save(); hud();
-    toast('🌸 +50 🪙 от Аи!');
+    toast('🌸 +50 🪙 от Aya!');
   } finally { world.resume(); }
 }
 

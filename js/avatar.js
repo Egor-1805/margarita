@@ -10,6 +10,7 @@ export const DEFAULT_LOOK = {
   hat: 'none',
   shirt: '#e07aa8',
   acc: 'none',
+  vehicle: 'none',
 };
 
 const cir = (x, y, r, fill) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`;
@@ -192,55 +193,71 @@ export function avatarSVG(look = {}) {
 
 export const COSMETICS = [
   // причёски
-  { id: 'style_curly',    slot: 'hairStyle', cat: 'Причёска', name: 'Кудри',     emoji: '🌀', val: 'curly',    cost: 0 },
-  { id: 'style_short',    slot: 'hairStyle', cat: 'Причёска', name: 'Короткие',  emoji: '✂️', val: 'short',    cost: 0 },
-  { id: 'style_straight', slot: 'hairStyle', cat: 'Причёска', name: 'Прямые',    emoji: '💇‍♀️', val: 'straight', cost: 70 },
-  { id: 'style_ponytail', slot: 'hairStyle', cat: 'Причёска', name: 'Хвостик',   emoji: '🎀', val: 'ponytail', cost: 100 },
-  { id: 'style_long',     slot: 'hairStyle', cat: 'Причёска', name: 'Длинные',   emoji: '👩', val: 'long',     cost: 120 },
-  { id: 'style_bun',      slot: 'hairStyle', cat: 'Причёска', name: 'Пучок',     emoji: '🍡', val: 'bun',      cost: 120 },
+  { id: 'style_curly',    slot: 'hairStyle', cat: 'Причёска', name: 'Кудри',      emoji: '🌀', val: 'curly',    cost: 0 },
+  { id: 'style_short',    slot: 'hairStyle', cat: 'Причёска', name: 'Короткие',   emoji: '✂️', val: 'short',    cost: 0 },
+  { id: 'style_straight', slot: 'hairStyle', cat: 'Причёска', name: 'Прямые',     emoji: '💇', val: 'straight', cost: 200 },
+  { id: 'style_ponytail', slot: 'hairStyle', cat: 'Причёска', name: 'Хвостик',    emoji: '🎀', val: 'ponytail', cost: 300 },
+  { id: 'style_long',     slot: 'hairStyle', cat: 'Причёска', name: 'Длинные',    emoji: '👩', val: 'long',     cost: 400 },
+  { id: 'style_bun',      slot: 'hairStyle', cat: 'Причёска', name: 'Пучок',      emoji: '🍡', val: 'bun',      cost: 400 },
   // цвет волос
-  { id: 'hair_brown',  slot: 'hairColor', cat: 'Цвет волос', name: 'Тёмные', emoji: '🟤', val: '#5a3b22', cost: 0 },
-  { id: 'hair_black',  slot: 'hairColor', cat: 'Цвет волос', name: 'Чёрные', emoji: '⚫', val: '#2b2620', cost: 60 },
-  { id: 'hair_blond',  slot: 'hairColor', cat: 'Цвет волос', name: 'Блонд',  emoji: '👱‍♀️', val: '#d9a441', cost: 90 },
-  { id: 'hair_red',    slot: 'hairColor', cat: 'Цвет волос', name: 'Рыжие',  emoji: '🦰', val: '#b5532a', cost: 90 },
-  { id: 'hair_pink',   slot: 'hairColor', cat: 'Цвет волос', name: 'Розовые', emoji: '🌸', val: '#e07aa8', cost: 160 },
-  { id: 'hair_white',  slot: 'hairColor', cat: 'Цвет волос', name: 'Белые',  emoji: '🤍', val: '#e8e2d8', cost: 160 },
-  // голова (шляпы/аксессуары для волос)
-  { id: 'hat_none',    slot: 'hat', cat: 'Голова', name: 'Ничего',   emoji: '🙂', val: 'none',     cost: 0 },
-  { id: 'hat_lazo',    slot: 'hat', cat: 'Голова', name: 'Бантик',   emoji: '🎀', val: 'lazo',     cost: 50 },
-  { id: 'hat_flor',    slot: 'hat', cat: 'Голова', name: 'Цветок',   emoji: '🌺', val: 'flor',     cost: 70 },
-  { id: 'hat_gorra',   slot: 'hat', cat: 'Голова', name: 'Кепка',    emoji: '🧢', val: 'gorra',    cost: 80 },
-  { id: 'hat_boina',   slot: 'hat', cat: 'Голова', name: 'Берет',    emoji: '🎨', val: 'boina',    cost: 120 },
-  { id: 'hat_sombrero',slot: 'hat', cat: 'Голова', name: 'Сомбреро', emoji: '👒', val: 'sombrero', cost: 180 },
-  { id: 'hat_corona',  slot: 'hat', cat: 'Голова', name: 'Корона',   emoji: '👑', val: 'corona',   cost: 600 },
+  { id: 'hair_brown',  slot: 'hairColor', cat: 'Цвет волос', name: 'Каштановые', emoji: '🟤', val: '#5a3b22', cost: 0 },
+  { id: 'hair_black',  slot: 'hairColor', cat: 'Цвет волос', name: 'Чёрные',     emoji: '⚫', val: '#2b2620', cost: 180 },
+  { id: 'hair_blond',  slot: 'hairColor', cat: 'Цвет волос', name: 'Блонд',      emoji: '👱', val: '#d9a441', cost: 280 },
+  { id: 'hair_red',    slot: 'hairColor', cat: 'Цвет волос', name: 'Рыжие',      emoji: '🦰', val: '#b5532a', cost: 280 },
+  { id: 'hair_pink',   slot: 'hairColor', cat: 'Цвет волос', name: 'Розовые',    emoji: '🌸', val: '#e07aa8', cost: 500 },
+  { id: 'hair_white',  slot: 'hairColor', cat: 'Цвет волос', name: 'Белые',      emoji: '🤍', val: '#e8e2d8', cost: 500 },
+  { id: 'hair_blue',   slot: 'hairColor', cat: 'Цвет волос', name: 'Синие',      emoji: '💙', val: '#4a90d9', cost: 700 },
+  { id: 'hair_purple', slot: 'hairColor', cat: 'Цвет волос', name: 'Фиолетовые', emoji: '💜', val: '#9b59b6', cost: 700 },
+  { id: 'hair_gold',   slot: 'hairColor', cat: 'Цвет волос', name: 'Золотые',    emoji: '✨', val: '#f4c430', cost: 950 },
+  // голова
+  { id: 'hat_none',     slot: 'hat', cat: 'Голова', name: 'Ничего',    emoji: '🙂', val: 'none',     cost: 0 },
+  { id: 'hat_lazo',     slot: 'hat', cat: 'Голова', name: 'Бантик',    emoji: '🎀', val: 'lazo',     cost: 150 },
+  { id: 'hat_flor',     slot: 'hat', cat: 'Голова', name: 'Цветок',    emoji: '🌺', val: 'flor',     cost: 220 },
+  { id: 'hat_gorra',    slot: 'hat', cat: 'Голова', name: 'Кепка',     emoji: '🧢', val: 'gorra',    cost: 300 },
+  { id: 'hat_boina',    slot: 'hat', cat: 'Голова', name: 'Берет',     emoji: '🎨', val: 'boina',    cost: 450 },
+  { id: 'hat_sombrero', slot: 'hat', cat: 'Голова', name: 'Сомбреро',  emoji: '👒', val: 'sombrero', cost: 650 },
+  { id: 'hat_corona',   slot: 'hat', cat: 'Голова', name: 'Корона',    emoji: '👑', val: 'corona',   cost: 2000 },
   // одежда
-  { id: 'shirt_pink',   slot: 'shirt', cat: 'Одежда', name: 'Розовая',    emoji: '🌸', val: '#e07aa8', cost: 0 },
-  { id: 'shirt_teal',   slot: 'shirt', cat: 'Одежда', name: 'Бирюзовая',  emoji: '🟦', val: '#4d908e', cost: 60 },
-  { id: 'shirt_red',    slot: 'shirt', cat: 'Одежда', name: 'Красная',    emoji: '🟥', val: '#e76f51', cost: 70 },
-  { id: 'shirt_blue',   slot: 'shirt', cat: 'Одежда', name: 'Синяя',      emoji: '🔵', val: '#3a6ea5', cost: 70 },
-  { id: 'shirt_gold',   slot: 'shirt', cat: 'Одежда', name: 'Золотая',    emoji: '🟡', val: '#f4a259', cost: 130 },
-  { id: 'shirt_purple', slot: 'shirt', cat: 'Одежда', name: 'Фиолетовая', emoji: '🟪', val: '#7b5ea7', cost: 130 },
+  { id: 'shirt_pink',   slot: 'shirt', cat: 'Одежда', name: 'Розовая',     emoji: '🌸', val: '#e07aa8', cost: 0 },
+  { id: 'shirt_teal',   slot: 'shirt', cat: 'Одежда', name: 'Бирюзовая',   emoji: '🟦', val: '#4d908e', cost: 200 },
+  { id: 'shirt_red',    slot: 'shirt', cat: 'Одежда', name: 'Красная',     emoji: '🟥', val: '#e76f51', cost: 250 },
+  { id: 'shirt_blue',   slot: 'shirt', cat: 'Одежда', name: 'Синяя',       emoji: '🔵', val: '#3a6ea5', cost: 250 },
+  { id: 'shirt_green',  slot: 'shirt', cat: 'Одежда', name: 'Зелёная',     emoji: '🟢', val: '#3a8a50', cost: 300 },
+  { id: 'shirt_white',  slot: 'shirt', cat: 'Одежда', name: 'Белая',       emoji: '⬜', val: '#f0ece4', cost: 350 },
+  { id: 'shirt_black',  slot: 'shirt', cat: 'Одежда', name: 'Чёрная',      emoji: '⬛', val: '#2c2a36', cost: 400 },
+  { id: 'shirt_gold',   slot: 'shirt', cat: 'Одежда', name: 'Золотая',     emoji: '🟡', val: '#f4a259', cost: 600 },
+  { id: 'shirt_purple', slot: 'shirt', cat: 'Одежда', name: 'Фиолетовая',  emoji: '🟪', val: '#7b5ea7', cost: 600 },
   // аксессуары
-  { id: 'acc_none',       slot: 'acc', cat: 'Аксессуар', name: 'Ничего',         emoji: '🚫', val: 'none',     cost: 0 },
-  { id: 'acc_pendientes', slot: 'acc', cat: 'Аксессуар', name: 'Серёжки',        emoji: '💎', val: 'pendientes', cost: 80 },
-  { id: 'acc_gafas',      slot: 'acc', cat: 'Аксессуар', name: 'Очки',           emoji: '👓', val: 'gafas',    cost: 90 },
-  { id: 'acc_sol',        slot: 'acc', cat: 'Аксессуар', name: 'Очки от солнца', emoji: '🕶️', val: 'sol',      cost: 140 },
-  { id: 'acc_bufanda',    slot: 'acc', cat: 'Аксессуар', name: 'Шарф',           emoji: '🧣', val: 'bufanda',  cost: 90 },
+  { id: 'acc_none',       slot: 'acc', cat: 'Аксессуар', name: 'Ничего',          emoji: '🚫', val: 'none',       cost: 0 },
+  { id: 'acc_pendientes', slot: 'acc', cat: 'Аксессуар', name: 'Серёжки',         emoji: '💎', val: 'pendientes', cost: 250 },
+  { id: 'acc_gafas',      slot: 'acc', cat: 'Аксессуар', name: 'Очки',            emoji: '👓', val: 'gafas',      cost: 300 },
+  { id: 'acc_bufanda',    slot: 'acc', cat: 'Аксессуар', name: 'Шарф',            emoji: '🧣', val: 'bufanda',    cost: 350 },
+  { id: 'acc_sol',        slot: 'acc', cat: 'Аксессуар', name: 'Очки от солнца',  emoji: '🕶️', val: 'sol',        cost: 500 },
+  // транспорт — роскошь
+  { id: 'veh_none',       slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Пешком',     emoji: '🚶', val: 'none',       cost: 0 },
+  { id: 'veh_skateboard', slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Скейтборд',  emoji: '🛹', val: 'skateboard', cost: 600 },
+  { id: 'veh_bike',       slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Велосипед',  emoji: '🚲', val: 'bike',       cost: 1500 },
+  { id: 'veh_scooter',    slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Самокат',    emoji: '🛴', val: 'scooter',    cost: 2200 },
+  { id: 'veh_horse',      slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Лошадь',     emoji: '🐎', val: 'horse',      cost: 4000 },
+  { id: 'veh_moto',       slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Мотоцикл',   emoji: '🏍️', val: 'moto',       cost: 7000 },
+  { id: 'veh_car',        slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Автомобиль', emoji: '🚗', val: 'car',        cost: 12000 },
+  { id: 'veh_heli',       slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Вертолёт',   emoji: '🚁', val: 'heli',       cost: 20000 },
+  { id: 'veh_yacht',      slot: 'vehicle', cat: 'Транспорт 🚗', name: 'Яхта',       emoji: '⛵', val: 'yacht',      cost: 35000 },
 ];
 
 // Темы города (косметика). val — ключ темы в town.js
 export const TOWN_SKINS = [
   { id: 'town_dia',        name: 'Ясный день',  emoji: '☀️', val: 'dia',        cost: 0 },
-  { id: 'town_primavera',  name: 'Весна',       emoji: '🌷', val: 'primavera',  cost: 120 },
-  { id: 'town_atardecer',  name: 'Закат',       emoji: '🌇', val: 'atardecer',  cost: 200 },
-  { id: 'town_noche',      name: 'Ночь',        emoji: '🌙', val: 'noche',      cost: 250 },
-  { id: 'town_nevado',     name: 'Зима',        emoji: '❄️', val: 'nevado',     cost: 300 },
+  { id: 'town_primavera',  name: 'Весна',       emoji: '🌷', val: 'primavera',  cost: 400 },
+  { id: 'town_atardecer',  name: 'Закат',       emoji: '🌇', val: 'atardecer',  cost: 600 },
+  { id: 'town_noche',      name: 'Ночь',        emoji: '🌙', val: 'noche',      cost: 800 },
+  { id: 'town_nevado',     name: 'Зима',        emoji: '❄️', val: 'nevado',     cost: 1000 },
 ];
 
 // Функциональные улучшения
 export const UPGRADES = [
-  { id: 'up_new',    name: '+5 новых слов в день', desc: 'Учи больше каждый день. Можно покупать несколько раз.', emoji: '🆕', cost: 200, type: 'newPerDay', repeatable: true },
-  { id: 'up_freeze', name: 'Заморозка серии',      desc: 'Спасает 🔥-серию за один пропущенный день. До 3 штук.',  emoji: '🧊', cost: 150, type: 'freeze',    repeatable: true, max: 3 },
-  { id: 'up_hint',   name: 'Подсказки в наборе',   desc: 'Показывает первую букву слова в режиме ввода.',          emoji: '💡', cost: 300, type: 'hint',      oneTime: true },
-  { id: 'up_double', name: '×2 монеты (10 повторов)', desc: 'Удвоенные монеты за следующие 10 карточек.',          emoji: '✨', cost: 250, type: 'double',    repeatable: true },
+  { id: 'up_new',    name: '+5 новых слов в день', desc: 'Учи больше каждый день. Можно покупать несколько раз.', emoji: '🆕', cost: 500,  type: 'newPerDay', repeatable: true },
+  { id: 'up_freeze', name: 'Заморозка серии',      desc: 'Спасает 🔥-серию за один пропущенный день. До 3 штук.',  emoji: '🧊', cost: 400,  type: 'freeze',    repeatable: true, max: 3 },
+  { id: 'up_hint',   name: 'Подсказки в наборе',   desc: 'Показывает первую букву слова в режиме ввода.',          emoji: '💡', cost: 800,  type: 'hint',      oneTime: true },
+  { id: 'up_double', name: '×2 монеты (10 повторов)', desc: 'Удвоенные монеты за следующие 10 карточек.',          emoji: '✨', cost: 650,  type: 'double',    repeatable: true },
 ];
