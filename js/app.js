@@ -308,7 +308,142 @@ function showGenderPicker() {
     if (g === 'm') { store.setAvatarPart('shirt', '#3a6ea5'); store.setAvatarPart('hairStyle', 'short'); store.addOwned('shirt_blue'); store.addOwned('style_short'); }
     store.getGame().pickedGender = true; store.save();
     world && world.setLook(store.getGame().avatar); hud();
-    ov.remove(); world && world.resume();
+    ov.remove();
+    runTutorial();
+  });
+}
+
+// ---------- Обучение ----------
+const TUTORIAL_STEPS = [
+  {
+    emoji: '👋',
+    text: 'Привет! Я — милашка Aya, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
+  },
+  {
+    emoji: '🏛️',
+    text: 'Подходи к зданиям и нажимай «Взаимодействовать» — внутри тебя ждут задания и новые слова.',
+    highlight: 'buildings',
+  },
+  {
+    emoji: '💬',
+    text: 'Горожане охотно поболтают! Подойди к персонажу и нажми кнопку внизу.',
+    highlight: 'npc',
+  },
+  {
+    emoji: '🎁',
+    text: 'Ищи сундуки и особые объекты по всему городу — они скрывают приятные сюрпризы.',
+    highlight: 'chest',
+  },
+  {
+    emoji: '🛍️',
+    text: 'Зарабатывай монеты 🪙 за ответы и трать их в магазине на новые образы.',
+    highlight: 'shop',
+  },
+  {
+    emoji: '🎯',
+    text: 'Твоя цель — играючи выучить язык. Исследуй город, общайся с жителями и не забывай заходить каждый день. Удачи! 🌟',
+  },
+];
+
+function runTutorial() {
+  return new Promise(resolve => {
+    const g = store.getGame();
+    if (g.tutorialDone) { resolve(); return; }
+
+    let step = 0;
+
+    const ayaSVG = `<svg viewBox="0 0 80 90" width="80" height="90" xmlns="http://www.w3.org/2000/svg">
+      <!-- тело -->
+      <rect x="24" y="58" width="32" height="28" rx="6" fill="#ff80b3"/>
+      <!-- шея -->
+      <ellipse cx="40" cy="58" rx="7" ry="5" fill="#f5c6d8"/>
+      <!-- голова -->
+      <ellipse cx="40" cy="40" rx="20" ry="21" fill="#f5c6d8"/>
+      <!-- волосы задние -->
+      <ellipse cx="40" cy="32" rx="21" ry="16" fill="#7a4520"/>
+      <rect x="19" y="30" width="8" height="18" rx="4" fill="#7a4520"/>
+      <rect x="53" y="30" width="8" height="18" rx="4" fill="#7a4520"/>
+      <!-- лицо поверх волос -->
+      <ellipse cx="40" cy="42" rx="17" ry="18" fill="#f5c6d8"/>
+      <!-- волосы верх (чёлка) -->
+      <ellipse cx="40" cy="24" rx="21" ry="10" fill="#7a4520"/>
+      <!-- брови -->
+      <path d="M29 35 Q33 33 36 35" stroke="#5a3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M44 35 Q47 33 51 35" stroke="#5a3010" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <!-- глаза -->
+      <ellipse cx="33" cy="41" rx="5" ry="5.5" fill="white"/>
+      <ellipse cx="47" cy="41" rx="5" ry="5.5" fill="white"/>
+      <circle cx="33" cy="42" r="3" fill="#3a2a22"/>
+      <circle cx="47" cy="42" r="3" fill="#3a2a22"/>
+      <circle cx="34.2" cy="40.5" r="1.2" fill="white"/>
+      <circle cx="48.2" cy="40.5" r="1.2" fill="white"/>
+      <!-- ресницы -->
+      <line x1="29" y1="36.5" x2="27.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <line x1="33" y1="35.5" x2="33" y2="33" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <line x1="37" y1="36.5" x2="38.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <line x1="43" y1="36.5" x2="41.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <line x1="47" y1="35.5" x2="47" y2="33" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <line x1="51" y1="36.5" x2="52.5" y2="34.5" stroke="#5a3010" stroke-width="1" stroke-linecap="round"/>
+      <!-- нос -->
+      <circle cx="38" cy="49" r="1.5" fill="#e8a8b8"/>
+      <circle cx="42" cy="49" r="1.5" fill="#e8a8b8"/>
+      <!-- губы -->
+      <ellipse cx="40" cy="53.5" rx="5.5" ry="2.2" fill="#e88fa0"/>
+      <path d="M34.5 53.5 Q40 57 45.5 53.5" stroke="#c0607a" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <!-- румянец -->
+      <ellipse cx="27" cy="47" rx="4" ry="2.5" fill="rgba(255,150,150,0.3)"/>
+      <ellipse cx="53" cy="47" rx="4" ry="2.5" fill="rgba(255,150,150,0.3)"/>
+    </svg>`;
+
+    const highlights = {
+      buildings: '🏛️ Здания — подойди к двери',
+      npc: '💬 Персонажи — подойди и поговори',
+      chest: '🎁 Сундуки — ищи по всему городу',
+      shop: '🛍️ Магазин — кнопка в правом верхнем углу',
+    };
+
+    const render = () => {
+      const s = TUTORIAL_STEPS[step];
+      const isLast = step === TUTORIAL_STEPS.length - 1;
+      const dots = TUTORIAL_STEPS.map((_, i) =>
+        `<span class="tut-dot ${i === step ? 'on' : ''}"></span>`).join('');
+
+      ov.querySelector('.tut-inner').innerHTML = `
+        <div class="tut-aya">${ayaSVG}</div>
+        <div class="tut-name">Aya</div>
+        <div class="tut-bubble">
+          <div class="tut-emoji">${s.emoji}</div>
+          <p class="tut-text">${s.text}</p>
+          ${s.highlight ? `<div class="tut-hint">👆 ${highlights[s.highlight]}</div>` : ''}
+        </div>
+        <div class="tut-dots">${dots}</div>
+        <div class="tut-btns">
+          ${step > 0 ? '<button class="tut-back">‹ Назад</button>' : '<div></div>'}
+          <button class="tut-next ${isLast ? 'last' : ''}">${isLast ? 'Поехали! 🚀' : 'Далее ›'}</button>
+        </div>
+        ${step === 0 ? '<button class="tut-skip">Пропустить</button>' : ''}
+      `;
+
+      ov.querySelector('.tut-next').onclick = () => {
+        if (isLast) { finish(); } else { step++; render(); }
+      };
+      const back = ov.querySelector('.tut-back');
+      if (back) back.onclick = () => { step--; render(); };
+      const skip = ov.querySelector('.tut-skip');
+      if (skip) skip.onclick = finish;
+    };
+
+    const finish = () => {
+      ov.remove();
+      g.tutorialDone = true;
+      store.save();
+      world && world.resume();
+      resolve();
+    };
+
+    const ov = el(`<div class="tut-overlay"><div class="tut-card"><div class="tut-inner"></div></div></div>`);
+    document.body.appendChild(ov);
+    render();
   });
 }
 
@@ -392,6 +527,7 @@ function init() {
   }
   if (!store.getGame().lang) showLangPicker();
   else if (!store.getGame().pickedGender) showGenderPicker();
+  else if (!store.getGame().tutorialDone) runTutorial();
   if (used > 0) setTimeout(() => toast(`🧊 Заморозка спасла серию (×${used})`), 700);
   if ('serviceWorker' in navigator) navigator.serviceWorker.register('./sw.js').catch(() => {});
 }

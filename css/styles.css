@@ -248,6 +248,24 @@ input[type=range]{width:100%;accent-color:var(--brand)}
 .upgrade-buy.dis{background:#cdd6d4}
 .upgrade-buy:disabled{background:#bcd9c6;color:#fff}
 
+/* tutorial */
+.tut-overlay{position:fixed;inset:0;z-index:200;background:rgba(0,0,0,0.7);display:flex;align-items:center;justify-content:center;padding:16px}
+.tut-card{background:#fff;border-radius:20px;padding:24px 20px 18px;max-width:360px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,0.28);text-align:center}
+.tut-aya{margin:0 auto 4px;display:block;filter:drop-shadow(0 4px 8px rgba(200,80,140,0.25))}
+.tut-name{font-size:1rem;font-weight:700;color:#a0357a;margin-bottom:12px;letter-spacing:.04em}
+.tut-bubble{background:linear-gradient(135deg,#fff0f8,#fce8ff);border-radius:14px;padding:14px 16px;border:1.5px solid #f0a8d0;margin-bottom:14px}
+.tut-emoji{font-size:2rem;margin-bottom:6px}
+.tut-text{font-size:.97rem;line-height:1.5;color:#2c2a26;margin:0;text-align:left}
+.tut-hint{margin-top:10px;font-size:.84rem;color:#7a4a8a;background:rgba(200,120,220,0.12);border-radius:8px;padding:7px 10px;text-align:left}
+.tut-dots{display:flex;gap:6px;justify-content:center;margin-bottom:14px}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:#e0c0d8;transition:background .2s}
+.tut-dot.on{background:#c040a0;transform:scale(1.2)}
+.tut-btns{display:flex;gap:10px;justify-content:space-between;align-items:center}
+.tut-back{background:none;border:1.5px solid #d0b0c8;color:#8a5878;border-radius:999px;padding:9px 18px;font-size:.9rem;font-weight:600;cursor:pointer}
+.tut-next{background:linear-gradient(135deg,#e040a0,#c020c0);color:#fff;border:none;border-radius:999px;padding:10px 22px;font-size:.97rem;font-weight:700;cursor:pointer;flex:1;box-shadow:0 3px 10px rgba(200,0,160,0.3)}
+.tut-next.last{background:linear-gradient(135deg,#f04090,#8020d0)}
+.tut-skip{background:none;border:none;color:#b090a8;font-size:.8rem;margin-top:10px;cursor:pointer;text-decoration:underline;width:100%}
+
 /* toast */
 .toast{position:fixed;left:50%;bottom:106px;translate:-50% 8px;
   background:#2c2a26;color:#fff;padding:11px 18px;border-radius:999px;font-size:14px;font-weight:600;
