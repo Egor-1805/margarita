@@ -30,6 +30,8 @@ body{
 .hud-chip.fire{color:var(--accent)}
 .hud-ic{width:40px;height:40px;border-radius:50%;border:0;background:rgba(255,255,255,.9);font-size:19px;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.15)}
 .hud-ic:active{transform:scale(.92)}
+#btnShop{background:linear-gradient(135deg,#f4a259,#e76f51);color:#fff;font-size:20px;animation:shopPulse 2.8s ease-in-out infinite}
+@keyframes shopPulse{0%,100%{box-shadow:0 2px 8px rgba(231,111,81,.4)}50%{box-shadow:0 2px 18px rgba(231,111,81,.85)}}
 
 /* ---------- джойстик (плавающий) ---------- */
 #joystick{position:fixed;width:128px;height:128px;border-radius:50%;

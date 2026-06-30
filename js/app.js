@@ -66,7 +66,8 @@ async function talkNPC(npc) {
     const dlg = makeDialogue();
     const res = await runDialogue(dlg);
     store.markStudied(); hud();
-    if (res.coins) toast(`${res.correct ? '✓ ¡Bien!' : 'Почти!'} +${res.coins} 🪙`);
+    const BIEN = { es: '¡Bien!', en: 'Well done!', de: 'Gut!' };
+    if (res.coins) toast(`${res.correct ? '✓ ' + (BIEN[store.getGame().lang] || '✓') : 'Почти!'} +${res.coins} 🪙`);
   } finally { world.resume(); }
 }
 
@@ -299,6 +300,34 @@ function showGenderPicker() {
   });
 }
 
+// ---------- Ая (секретный NPC) ----------
+async function talkAya() {
+  world.pause(); $('#actionBtn').classList.add('hidden');
+  try {
+    const g = store.getGame();
+    const dayKey = store.todayKey();
+    if (g.ayaGiftDay === dayKey) {
+      toast('🌸 Ая улыбается, но подарок уже дала сегодня!');
+      return;
+    }
+    await new Promise((resolve) => {
+      const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:2rem 1.5rem">
+        <div style="font-size:3.5rem;margin-bottom:.5rem">🌸</div>
+        <h2 style="margin:.25rem 0;font-size:1.4rem">Ая</h2>
+        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Подарок от милашки!</div>
+        <div style="font-size:2.5rem;font-weight:700;color:#e6b800">🪙 +50</div>
+        <button class="mg-btn" id="ayaOk" style="margin-top:1.5rem">Спасибо! 😊</button>
+      </div></div></div>`);
+      document.body.appendChild(ov);
+      ov.querySelector('#ayaOk').onclick = () => { ov.remove(); resolve(); };
+    });
+    g.ayaGiftDay = dayKey;
+    store.addRewards(50, 0);
+    store.save(); hud();
+    toast('🌸 +50 🪙 от Аи!');
+  } finally { world.resume(); }
+}
+
 // ---------- тост ----------
 function toast(msg) {
   const t = el(`<div class="toast">${msg}</div>`); document.body.appendChild(t);
@@ -311,7 +340,7 @@ function init() {
   const used = store.checkStreakBreak(); store.save();
   hud();
   world = createWorld($('#game'), store.getGame().avatar, {
-    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen,
+    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen, onAya: talkAya,
   });
   world.attachJoystick($('#joystick'), $('#joynub'));
   $('#actionBtn').onclick = () => world.interact();

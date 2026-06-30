@@ -33,6 +33,12 @@ export function createWorld(canvas, look, handlers) {
     pal: NPC_PALETTES[i % NPC_PALETTES.length],
   }));
 
+  // Ая — секретный NPC, меняет место каждый день
+  const AYA_SPOTS = [[6,5],[18,8],[32,12],[10,22],[38,18],[24,6],[14,28],[30,24],[8,16],[22,20]];
+  const ayaIdx = Math.floor(Date.now() / 86400000) % AYA_SPOTS.length;
+  const aya = { x: AYA_SPOTS[ayaIdx][0], y: AYA_SPOTS[ayaIdx][1], phase: 0,
+    pal: { skin: '#f5c6d8', hair: '#7b3fa5', shirt: '#ff80b3' } };
+
   // сундуки
   const chests = CHEST_SPOTS.map(c => ({ ...c }));
 
@@ -101,6 +107,7 @@ export function createWorld(canvas, look, handlers) {
     }
     // NPC лёгкое покачивание
     for (const n of npcs) n.phase += dt * 2;
+    aya.phase += dt * 2;
 
     // камера
     const cx = state.px * T - vw / 2, cy = state.py * T - vh / 2;
@@ -124,6 +131,8 @@ export function createWorld(canvas, look, handlers) {
       const d = Math.hypot(state.px - c.x, state.py - c.y);
       if (d < bestD) { bestD = d; best = { type: 'chest', ref: c, label: '🎁 Открыть сундук' }; }
     }
+    const da = Math.hypot(state.px - aya.x, state.py - aya.y - 0.3);
+    if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Ая' }; }
     if ((best && best.ref) !== (state.nearby && state.nearby.ref)) {
       state.nearby = best;
       handlers.onNearby && handlers.onNearby(best);
@@ -157,8 +166,21 @@ export function createWorld(canvas, look, handlers) {
       S.drawChest(ctx, c.x * T - cam.x, c.y * T - cam.y, T, open, pulse);
     }
     // сущности по глубине
+    const drawAya = () => {
+      const ax = aya.x * T - cam.x, ay = aya.y * T - cam.y;
+      S.drawNPC(ctx, ax, ay, T, aya.pal, aya.phase);
+      ctx.save();
+      const fs = Math.max(10, T * 0.28);
+      ctx.font = `bold ${fs}px sans-serif`;
+      ctx.textAlign = 'center';
+      const ny = ay - T * 0.72;
+      ctx.strokeStyle = '#7b3fa5'; ctx.lineWidth = 3; ctx.strokeText('Ая', ax, ny);
+      ctx.fillStyle = '#fff'; ctx.fillText('Ая', ax, ny);
+      ctx.restore();
+    };
     const ents = [
       ...npcs.map(n => ({ y: n.y, draw: () => S.drawNPC(ctx, n.x * T - cam.x, n.y * T - cam.y, T, n.pal, n.phase) })),
+      { y: aya.y, draw: drawAya },
       { y: state.py, draw: () => S.drawPerson(ctx, state.px * T - cam.x, state.py * T - cam.y, T, state.look, state.phase, state.moving) },
     ].sort((a, b) => a.y - b.y);
     for (const e of ents) e.draw();
@@ -256,6 +278,7 @@ export function createWorld(canvas, look, handlers) {
     if (type === 'location') handlers.onEnter && handlers.onEnter(ref);
     else if (type === 'npc') handlers.onTalk && handlers.onTalk(ref);
     else if (type === 'chest') handlers.onChest && handlers.onChest(ref);
+    else if (type === 'aya') handlers.onAya && handlers.onAya();
   }
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }

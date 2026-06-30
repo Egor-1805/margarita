@@ -9,7 +9,14 @@ import { speak } from './audio.js';
 
 const SR_LANGS = { es: 'es-ES', en: 'en-US', de: 'de-DE' };
 const WRITE_LABELS = { es: 'по-испански', en: 'по-английски', de: 'по-немецки' };
+const LANG_LABELS = {
+  es: { bien: '¡Bien!', correcto: '¡Correcto!', biendich: '¡Bien dicho!', scrTitle: 'по-испански', phraseTitle: 'по-испански' },
+  en: { bien: 'Well done!', correcto: 'Correct!', biendich: 'Well said!', scrTitle: 'по-английски', phraseTitle: 'по-английски' },
+  de: { bien: 'Gut gemacht!', correcto: 'Richtig!', biendich: 'Gut gesprochen!', scrTitle: 'по-немецки', phraseTitle: 'по-немецки' },
+};
+const ARTICLE_RE = { es: /^(el |la |los |las )/i, en: /^(the |a |an )/i, de: /^(der |die |das |ein |eine |einen |einem |eines )/i };
 const getLang = () => store.getGame().lang || 'es';
+const ll = () => LANG_LABELS[getLang()] || LANG_LABELS.es;
 
 const norm = (s) => s.toLowerCase().trim().normalize('NFD')
   .replace(/[̀-ͯ]/g, '').replace(/[¿?¡!.,…]/g, '').replace(/\s+/g, ' ').trim();
@@ -257,11 +264,11 @@ function runQuiz(cards, mode) {
         <button class="mg-btn" id="mgCheck">Проверить</button>
         <div class="mg-fb" id="mgFb"></div></div>`));
       const inp = m.body.querySelector('#mgIn'); setTimeout(() => inp.focus(), 60);
-      const accept = new Set([norm(c.es), norm(c.es.replace(/^(el |la |los |las )/, ''))]);
+      const accept = new Set([norm(c.es), norm(c.es.replace(ARTICLE_RE[getLang()] || ARTICLE_RE.es, ''))]);
       const check = () => {
         const ok = accept.has(norm(inp.value)); if (!inp.value.trim()) return;
         inp.disabled = true; m.body.querySelector('#mgCheck').remove();
-        m.body.querySelector('#mgFb').innerHTML = ok ? `<div class="fb ok">✓ ¡Correcto! <b>${c.es}</b></div>`
+        m.body.querySelector('#mgFb').innerHTML = ok ? `<div class="fb ok">✓ ${ll().correcto} <b>${c.es}</b></div>`
           : `<div class="fb no">Правильно: <b>${c.es}</b><br><small>🔁 покажу ещё раз</small></div>`;
         speak(c.es); if (ok) correct++; coins += gradeCard(c, ok);
         const nx = elFrom(`<button class="mg-btn" id="mgNx">Дальше →</button>`); m.body.querySelector('.mg-quiz').appendChild(nx);
@@ -286,7 +293,7 @@ function runScramble(cards) {
       const letters = shuffle(target.split(''));
       m.body.replaceChildren(elFrom(`<div class="mg-quiz">
         <div class="mg-emoji">${c.emoji}</div><div class="mg-ru">${c.ru}</div>
-        <div class="mg-q">Собери слово по-испански</div>
+        <div class="mg-q">Собери слово ${ll().scrTitle}</div>
         <div class="mg-build" id="mgBuild"></div>
         <div class="mg-letters">${letters.map((l, j) => `<button class="mg-letter" data-j="${j}">${l}</button>`).join('')}</div>
         <div class="mg-fb" id="mgFb"></div></div>`));
@@ -322,7 +329,7 @@ function runPhrase(cards) {
       const words = c.exEs.replace(/[¿?¡!.,]/g, '').trim().split(/\s+/);
       const shuffled = shuffle(words.map((w, j) => ({ w, j })));
       m.body.replaceChildren(elFrom(`<div class="mg-quiz">
-        <div class="mg-ru">${c.exRu}</div><div class="mg-q">Собери фразу по-испански</div>
+        <div class="mg-ru">${c.exRu}</div><div class="mg-q">Собери фразу ${ll().phraseTitle}</div>
         <div class="mg-build phrase" id="mgBuild"></div>
         <div class="mg-words">${shuffled.map((o, k) => `<button class="mg-word" data-k="${k}">${o.w}</button>`).join('')}</div>
         <div class="mg-fb" id="mgFb"></div></div>`));
@@ -372,7 +379,7 @@ function runSpeak(cards) {
             const said = norm([...e.results[0]].map(a => a.transcript).join(' '));
             const tgt = norm(bare(c.es));
             const ok = said.includes(tgt) || tgt.includes(said) || levClose(said, tgt);
-            m.body.querySelector('#mgFb').innerHTML = ok ? `<div class="fb ok">✓ ¡Bien dicho!</div>` : `<div class="fb no">Услышал: «${e.results[0][0].transcript}»<br>Правильно: <b>${c.es}</b></div>`;
+            m.body.querySelector('#mgFb').innerHTML = ok ? `<div class="fb ok">✓ ${ll().biendich}</div>` : `<div class="fb no">Услышал: «${e.results[0][0].transcript}»<br>Правильно: <b>${c.es}</b></div>`;
             mic.remove(); done(ok);
           };
           rec.onerror = () => { m.body.querySelector('#mgFb').innerHTML = `<div class="fb no">Микрофон недоступен — повтори вслух и жми «Дальше».</div>`; mic.remove(); done(true); };
