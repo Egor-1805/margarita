@@ -32,10 +32,18 @@ function gradeCard(card, correct) {
 
 function distractors(card, field, n = 3) {
   const CARDS = getCards();
-  const same = CARDS.filter(c => c.region === card.region && c[field] !== card[field]);
+  const sameRegion = CARDS.filter(c => c.region === card.region && c[field] !== card[field]);
+  const similar = sameRegion.filter(c => Math.abs((c[field] || '').length - (card[field] || '').length) <= 5);
+  const pool = similar.length >= n ? similar : sameRegion;
   const opts = [];
-  for (const c of shuffle(same)) { if (opts.length >= n) break; if (!opts.includes(c[field])) opts.push(c[field]); }
-  while (opts.length < n) { const c = CARDS[(Math.random() * CARDS.length) | 0]; if (c[field] !== card[field] && !opts.includes(c[field])) opts.push(c[field]); }
+  for (const c of shuffle(pool)) {
+    if (opts.length >= n) break;
+    if (!opts.includes(c[field])) opts.push(c[field]);
+  }
+  while (opts.length < n) {
+    const c = CARDS[(Math.random() * CARDS.length) | 0];
+    if (c[field] !== card[field] && !opts.includes(c[field])) opts.push(c[field]);
+  }
   return opts;
 }
 

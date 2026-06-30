@@ -68,13 +68,49 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 
 // ---------- шаблоны диалогов ----------
 const RESPONDS_ES = [
-  { npcEs: '¡Hola! ¿Cómo estás?', npcRu: 'Привет! Как дела?', answer: 'Bien, gracias. ¿Y tú?', options: ['Bien, gracias. ¿Y tú?', 'Me llamo Ana.', 'Son las tres.'] },
-  { npcEs: '¿Cómo te llamas?', npcRu: 'Как тебя зовут?', answer: 'Me llamo Pablo.', options: ['Me llamo Pablo.', 'Muy bien.', 'De nada.'] },
-  { npcEs: '¿De dónde eres?', npcRu: 'Откуда ты?', answer: 'Soy de Rusia.', options: ['Soy de Rusia.', 'Tengo hambre.', 'Hasta luego.'] },
-  { npcEs: 'Muchas gracias.', npcRu: 'Большое спасибо.', answer: 'De nada.', options: ['De nada.', 'Buenos días.', 'No entiendo.'] },
-  { npcEs: '¡Buen provecho!', npcRu: 'Приятного аппетита!', answer: 'Gracias, igualmente.', options: ['Gracias, igualmente.', '¿Cuánto cuesta?', 'Estoy perdido.'] },
-  { npcEs: '¿Qué hora es?', npcRu: 'Который час?', answer: 'Son las dos.', options: ['Son las dos.', 'Soy médico.', 'Hace frío.'] },
+  // Приветствия и базовые фразы
+  { npcEs: '¡Hola! ¿Cómo estás?', npcRu: 'Привет! Как дела?', answer: 'Bien, gracias. ¿Y tú?', options: ['Bien, gracias. ¿Y tú?', 'Más o menos, ¿y tú?', 'Regular, gracias.'] },
+  { npcEs: '¿Cómo te llamas?', npcRu: 'Как тебя зовут?', answer: 'Me llamo Pablo.', options: ['Me llamo Pablo.', 'Me llamo bien.', 'Llamo a Pablo.'] },
+  { npcEs: '¿De dónde eres?', npcRu: 'Откуда ты?', answer: 'Soy de Rusia.', options: ['Soy de Rusia.', 'Estoy de Rusia.', 'Vengo de aquí.'] },
+  { npcEs: 'Muchas gracias.', npcRu: 'Большое спасибо.', answer: 'De nada.', options: ['De nada.', 'Con mucho gusto.', 'Por favor.'] },
+  { npcEs: '¡Buen provecho!', npcRu: 'Приятного аппетита!', answer: 'Gracias, igualmente.', options: ['Gracias, igualmente.', 'Gracias, también.', 'Igualmente, por favor.'] },
+  { npcEs: '¿Qué hora es?', npcRu: 'Который час?', answer: 'Son las dos.', options: ['Son las dos.', 'Es las dos.', 'Hace las dos.'] },
+  // Покупки
+  { npcEs: '¿Cuánto cuesta esto?', npcRu: 'Сколько это стоит?', answer: 'Son diez euros.', options: ['Son diez euros.', 'Cuesta mucho dinero.', 'Vale diez euros.'] },
+  { npcEs: '¿Tiene algo más barato?', npcRu: 'Есть что-нибудь подешевле?', answer: 'Sí, tenemos esta oferta.', options: ['Sí, tenemos esta oferta.', 'No, todo es caro.', 'Sí, es muy bonito.'] },
+  // Погода
+  { npcEs: '¡Hace mucho calor hoy!', npcRu: 'Сегодня очень жарко!', answer: '¡Sí, estoy sudando!', options: ['¡Sí, estoy sudando!', '¡Sí, tengo frío!', '¡Sí, llueve mucho!'] },
+  { npcEs: '¿Crees que va a llover?', npcRu: 'Думаешь, будет дождь?', answer: 'Sí, las nubes están oscuras.', options: ['Sí, las nubes están oscuras.', 'Sí, hace mucho sol.', 'No, el cielo está nublado.'] },
+  // Еда
+  { npcEs: '¿Qué recomiendas?', npcRu: 'Что рекомендуешь?', answer: 'El pollo está muy rico.', options: ['El pollo está muy rico.', 'El pollo está muy frío.', 'La sopa está muy cara.'] },
+  { npcEs: '¿Está bueno el café?', npcRu: 'Хороший кофе?', answer: 'Sí, está recién hecho.', options: ['Sí, está recién hecho.', 'Sí, está muy frío.', 'No, es muy dulce.'] },
+  // Дорога
+  { npcEs: 'Perdona, ¿dónde está el banco?', npcRu: 'Простите, где банк?', answer: 'Está a dos calles.', options: ['Está a dos calles.', 'Está muy lejos de aquí.', 'Está en el banco.'] },
+  { npcEs: '¿Hay una farmacia cerca?', npcRu: 'Есть аптека рядом?', answer: 'Sí, gira a la derecha.', options: ['Sí, gira a la derecha.', 'Sí, está muy lejos.', 'No, está a la derecha.'] },
+  // Транспорт
+  { npcEs: '¿A qué hora sale el autobús?', npcRu: 'В котором часу отходит автобус?', answer: 'A las tres y media.', options: ['A las tres y media.', 'En las tres y media.', 'A tres y media.'] },
+  // Знакомство
+  { npcEs: '¿Cuántos años tienes?', npcRu: 'Сколько тебе лет?', answer: 'Tengo veinticinco años.', options: ['Tengo veinticinco años.', 'Soy veinticinco años.', 'Tengo veinticinco.'] },
+  // Приглашение
+  { npcEs: '¿Quieres tomar un café?', npcRu: 'Хочешь выпить кофе?', answer: '¡Con mucho gusto!', options: ['¡Con mucho gusto!', '¡Con mucho café!', '¡Sí, tengo sed!'] },
+  // Прощание
+  { npcEs: '¡Hasta pronto!', npcRu: 'До скорого!', answer: '¡Igualmente! ¡Cuídate!', options: ['¡Igualmente! ¡Cuídate!', '¡Igualmente! ¡Hasta mañana!', '¡Sí! ¡Cuídate!'] },
+  // Комплимент
+  { npcEs: '¡Qué bonito atuendo!', npcRu: 'Какой красивый наряд!', answer: '¡Muchas gracias!', options: ['¡Muchas gracias!', '¡Sí, es bonito!', '¡De nada!'] },
+  // Здоровье
+  { npcEs: '¿Cómo te encuentras?', npcRu: 'Как ты себя чувствуешь?', answer: 'Me duele un poco la cabeza.', options: ['Me duele un poco la cabeza.', 'Me encuentro en casa.', 'Me duele mucho el café.'] },
+  // Хобби
+  { npcEs: '¿Qué te gusta hacer?', npcRu: 'Что тебе нравится делать?', answer: 'Me encanta bailar y leer.', options: ['Me encanta bailar y leer.', 'Me gusta mucho la música.', 'Me encanta bailar y correr.'] },
+  // Работа
+  { npcEs: '¿A qué te dedicas?', npcRu: 'Чем ты занимаешься?', answer: 'Soy estudiante.', options: ['Soy estudiante.', 'Estoy estudiante.', 'Soy el estudiante.'] },
+  // Семья
+  { npcEs: '¿Tienes hermanos?', npcRu: 'Есть братья или сёстры?', answer: 'Sí, tengo un hermano mayor.', options: ['Sí, tengo un hermano mayor.', 'Sí, tengo un hermano pequeño.', 'Sí, tengo hermanos mayores.'] },
+  // Планы
+  { npcEs: '¿Qué vas a hacer esta tarde?', npcRu: 'Что будешь делать сегодня вечером?', answer: 'Voy a estudiar español.', options: ['Voy a estudiar español.', 'Voy a estudiar mañana.', 'Voy a hacer español.'] },
+  // Комплимент за язык
+  { npcEs: '¡Hablas muy bien español!', npcRu: 'Ты очень хорошо говоришь по-испански!', answer: 'Gracias, estoy aprendiendo.', options: ['Gracias, estoy aprendiendo.', 'Gracias, hablo muy bien.', 'Gracias, sigo practicando.'] },
 ];
+
 const FILLS_ES = [
   { npcEs: '¿Qué comiste hoy?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Comí ___.', youRu: 'Я ел(а) ___.', pool: 5 },
   { npcEs: '¿Qué quieres beber?', npcRu: 'Что хочешь выпить?', youEs: 'Quiero ___.', youRu: 'Я хочу ___.', pool: 5 },
@@ -83,34 +119,112 @@ const FILLS_ES = [
   { npcEs: '¿Adónde vas?', npcRu: 'Куда ты идёшь?', youEs: 'Voy al ___.', youRu: 'Я иду в ___.', pool: 6 },
   { npcEs: '¿Qué tiempo hace?', npcRu: 'Какая погода?', youEs: 'Hoy ___.', youRu: 'Сегодня ___.', pool: 10 },
   { npcEs: 'Dime un piropo 😊', npcRu: 'Скажи мне комплимент 😊', youEs: '¡Eres ___!', youRu: 'Ты ___!', pool: 13 },
+  { npcEs: '¿Cómo se llama tu madre?', npcRu: 'Как зовут твою маму?', youEs: 'Mi madre se llama ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
+  { npcEs: '¿Cómo prefieres viajar?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Prefiero ir en ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
+  { npcEs: '¿Cuántos días tiene una semana?', npcRu: 'Сколько дней в неделе?', youEs: 'Una semana tiene ___ días.', youRu: 'В неделе ___ дней.', pool: 2 },
 ];
 
 const RESPONDS_EN = [
-  { npcEs: 'Hello! How are you?', npcRu: 'Привет! Как дела?', answer: 'Fine, thanks! And you?', options: ['Fine, thanks! And you?', 'My name is Anna.', "It's three o'clock."] },
-  { npcEs: "What's your name?", npcRu: 'Как тебя зовут?', answer: 'My name is Alex.', options: ['My name is Alex.', 'Very good.', "You're welcome."] },
-  { npcEs: 'Where are you from?', npcRu: 'Откуда ты?', answer: "I'm from Russia.", options: ["I'm from Russia.", "I'm hungry.", 'See you later.'] },
-  { npcEs: 'Thank you so much!', npcRu: 'Большое спасибо!', answer: "You're welcome!", options: ["You're welcome!", 'Good morning.', "I don't understand."] },
-  { npcEs: 'Enjoy your meal!', npcRu: 'Приятного аппетита!', answer: 'Thank you, likewise!', options: ['Thank you, likewise!', 'How much is it?', "I'm lost."] },
-  { npcEs: 'What time is it?', npcRu: 'Который час?', answer: "It's two o'clock.", options: ["It's two o'clock.", "I'm a doctor.", "It's cold."] },
+  // Приветствия
+  { npcEs: 'Hello! How are you?', npcRu: 'Привет! Как дела?', answer: 'Fine, thanks! And you?', options: ['Fine, thanks! And you?', 'Not bad, and you?', 'Pretty good, thanks!'] },
+  { npcEs: "What's your name?", npcRu: 'Как тебя зовут?', answer: 'My name is Alex.', options: ['My name is Alex.', "I'm called fine.", "I'm Alex's friend."] },
+  { npcEs: 'Where are you from?', npcRu: 'Откуда ты?', answer: "I'm from Russia.", options: ["I'm from Russia.", "I come from here.", "I'm going to Russia."] },
+  { npcEs: 'Thank you so much!', npcRu: 'Большое спасибо!', answer: "You're welcome!", options: ["You're welcome!", 'No problem at all.', 'That was nothing.'] },
+  { npcEs: 'Enjoy your meal!', npcRu: 'Приятного аппетита!', answer: 'Thank you, likewise!', options: ['Thank you, likewise!', 'Thanks, same to you!', 'Thank you, enjoy!'] },
+  { npcEs: 'What time is it?', npcRu: 'Который час?', answer: "It's two o'clock.", options: ["It's two o'clock.", "It's about two hours.", "Two o'clock is right."] },
+  // Покупки
+  { npcEs: 'How much does this cost?', npcRu: 'Сколько это стоит?', answer: "It's ten pounds.", options: ["It's ten pounds.", 'It costs a lot.', "That's ten items."] },
+  { npcEs: 'Do you have anything cheaper?', npcRu: 'Есть что-нибудь дешевле?', answer: "Yes, we have this one on sale.", options: ["Yes, we have this one on sale.", 'No, everything is expensive.', 'Yes, it is very nice.'] },
+  // Погода
+  { npcEs: "It's so hot today!", npcRu: 'Сегодня так жарко!', answer: "Yes, I'm sweating!", options: ["Yes, I'm sweating!", "Yes, I'm freezing!", "Yes, it's raining a lot!"] },
+  { npcEs: 'Do you think it will rain?', npcRu: 'Думаешь, будет дождь?', answer: 'Yes, the clouds look dark.', options: ['Yes, the clouds look dark.', 'Yes, the sun is bright.', 'No, the sky is cloudy.'] },
+  // Еда
+  { npcEs: 'What do you recommend?', npcRu: 'Что рекомендуешь?', answer: 'The chicken is delicious.', options: ['The chicken is delicious.', 'The chicken is very cold.', 'The soup is very expensive.'] },
+  { npcEs: 'Is the coffee good?', npcRu: 'Хороший кофе?', answer: "Yes, it's freshly made.", options: ["Yes, it's freshly made.", "Yes, it's very cold.", "No, it's too sweet."] },
+  // Дорога
+  { npcEs: 'Excuse me, where is the bank?', npcRu: 'Простите, где банк?', answer: "It's two streets away.", options: ["It's two streets away.", "It's very far from here.", "It's in the bank."] },
+  { npcEs: 'Is there a pharmacy nearby?', npcRu: 'Есть аптека рядом?', answer: 'Yes, turn right.', options: ['Yes, turn right.', 'Yes, it is very far.', 'No, turn right.'] },
+  // Транспорт
+  { npcEs: 'What time does the bus leave?', npcRu: 'В котором часу отходит автобус?', answer: 'At half past three.', options: ['At half past three.', 'In half past three.', 'At three and a half.'] },
+  // Знакомство
+  { npcEs: 'How old are you?', npcRu: 'Сколько тебе лет?', answer: "I'm twenty-five.", options: ["I'm twenty-five.", "I have twenty-five.", "I'm twenty-five years."] },
+  // Приглашение
+  { npcEs: 'Would you like a coffee?', npcRu: 'Хочешь кофе?', answer: "I'd love one!", options: ["I'd love one!", "I'd love coffee!", "Yes, I want one!"] },
+  // Прощание
+  { npcEs: 'See you soon!', npcRu: 'До скорого!', answer: 'Likewise! Take care!', options: ['Likewise! Take care!', 'Likewise! See tomorrow!', 'Yes! Take care!'] },
+  // Комплимент
+  { npcEs: 'What a nice outfit!', npcRu: 'Какой красивый наряд!', answer: 'Thank you so much!', options: ['Thank you so much!', "Yes, it's nice!", "You're welcome!"] },
+  // Здоровье
+  { npcEs: 'How are you feeling?', npcRu: 'Как ты себя чувствуешь?', answer: 'I have a bit of a headache.', options: ['I have a bit of a headache.', "I'm feeling at home.", 'I have a lot of coffee.'] },
+  // Хобби
+  { npcEs: 'What do you like doing?', npcRu: 'Что тебе нравится делать?', answer: 'I love dancing and reading.', options: ['I love dancing and reading.', 'I love music a lot.', 'I love dancing and running.'] },
+  // Работа
+  { npcEs: 'What do you do for work?', npcRu: 'Чем ты занимаешься?', answer: "I'm a student.", options: ["I'm a student.", "I am studying.", "I'm the student."] },
+  // Семья
+  { npcEs: 'Do you have any siblings?', npcRu: 'Есть братья или сёстры?', answer: 'Yes, I have an older brother.', options: ['Yes, I have an older brother.', 'Yes, I have a younger brother.', 'Yes, I have older brothers.'] },
+  // Планы
+  { npcEs: 'What are you going to do this evening?', npcRu: 'Что будешь делать сегодня вечером?', answer: "I'm going to study English.", options: ["I'm going to study English.", "I'm going to study tomorrow.", "I'm going to do English."] },
+  // Комплимент за язык
+  { npcEs: 'Your English is very good!', npcRu: 'Ты очень хорошо говоришь по-английски!', answer: "Thank you, I'm still learning.", options: ["Thank you, I'm still learning.", 'Thank you, I speak very well.', "Thank you, I'm still practising."] },
 ];
+
 const FILLS_EN = [
   { npcEs: 'What did you eat today?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'I ate ___.', youRu: 'Я ел(а) ___.', pool: 5 },
   { npcEs: 'What do you want to drink?', npcRu: 'Что хочешь выпить?', youEs: 'I want ___.', youRu: 'Я хочу ___.', pool: 5 },
-  { npcEs: 'What colour is your clothes?', npcRu: 'Какого цвета твоя одежда?', youEs: "It's ___.", youRu: 'Она ___.', pool: 7 },
+  { npcEs: 'What colour is your outfit?', npcRu: 'Какого цвета твой наряд?', youEs: "It's ___.", youRu: 'Он ___.', pool: 7 },
   { npcEs: 'How do you feel?', npcRu: 'Как ты себя чувствуешь?', youEs: 'I feel ___.', youRu: 'Я чувствую себя ___.', pool: 9 },
   { npcEs: 'Where are you going?', npcRu: 'Куда ты идёшь?', youEs: "I'm going to the ___.", youRu: 'Я иду в ___.', pool: 6 },
   { npcEs: "What's the weather like?", npcRu: 'Какая погода?', youEs: 'Today it is ___.', youRu: 'Сегодня ___.', pool: 10 },
   { npcEs: 'Say something nice 😊', npcRu: 'Скажи что-нибудь приятное 😊', youEs: 'You are ___!', youRu: 'Ты ___!', pool: 13 },
+  { npcEs: "What's your mother's name?", npcRu: 'Как зовут твою маму?', youEs: 'My mother is called ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
+  { npcEs: 'How do you prefer to travel?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'I prefer to go by ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
+  { npcEs: 'How many days are in a week?', npcRu: 'Сколько дней в неделе?', youEs: 'A week has ___ days.', youRu: 'В неделе ___ дней.', pool: 2 },
 ];
 
 const RESPONDS_DE = [
-  { npcEs: 'Hallo! Wie geht es dir?', npcRu: 'Привет! Как дела?', answer: 'Gut, danke! Und dir?', options: ['Gut, danke! Und dir?', 'Ich heiße Anna.', 'Es ist drei Uhr.'] },
-  { npcEs: 'Wie heißt du?', npcRu: 'Как тебя зовут?', answer: 'Ich heiße Max.', options: ['Ich heiße Max.', 'Sehr gut.', 'Bitte.'] },
-  { npcEs: 'Woher kommst du?', npcRu: 'Откуда ты?', answer: 'Ich komme aus Russland.', options: ['Ich komme aus Russland.', 'Ich habe Hunger.', 'Tschüss.'] },
-  { npcEs: 'Vielen Dank!', npcRu: 'Большое спасибо!', answer: 'Bitte sehr!', options: ['Bitte sehr!', 'Guten Morgen.', 'Ich verstehe nicht.'] },
-  { npcEs: 'Guten Appetit!', npcRu: 'Приятного аппетита!', answer: 'Danke, gleichfalls!', options: ['Danke, gleichfalls!', 'Wie viel kostet das?', 'Ich bin verloren.'] },
-  { npcEs: 'Wie spät ist es?', npcRu: 'Который час?', answer: 'Es ist zwei Uhr.', options: ['Es ist zwei Uhr.', 'Ich bin Arzt.', 'Es ist kalt.'] },
+  // Приветствия
+  { npcEs: 'Hallo! Wie geht es dir?', npcRu: 'Привет! Как дела?', answer: 'Gut, danke! Und dir?', options: ['Gut, danke! Und dir?', 'Es geht, und dir?', 'Ganz gut, danke!'] },
+  { npcEs: 'Wie heißt du?', npcRu: 'Как тебя зовут?', answer: 'Ich heiße Max.', options: ['Ich heiße Max.', 'Ich bin Max gut.', 'Max heißt mich.'] },
+  { npcEs: 'Woher kommst du?', npcRu: 'Откуда ты?', answer: 'Ich komme aus Russland.', options: ['Ich komme aus Russland.', 'Ich bin aus Russland.', 'Ich gehe nach Russland.'] },
+  { npcEs: 'Vielen Dank!', npcRu: 'Большое спасибо!', answer: 'Bitte sehr!', options: ['Bitte sehr!', 'Kein Problem!', 'Das war nichts.'] },
+  { npcEs: 'Guten Appetit!', npcRu: 'Приятного аппетита!', answer: 'Danke, gleichfalls!', options: ['Danke, gleichfalls!', 'Danke, auch Ihnen!', 'Danke, genauso!'] },
+  { npcEs: 'Wie spät ist es?', npcRu: 'Который час?', answer: 'Es ist zwei Uhr.', options: ['Es ist zwei Uhr.', 'Es hat zwei Stunden.', 'Zwei Uhr ist richtig.'] },
+  // Покупки
+  { npcEs: 'Wie viel kostet das?', npcRu: 'Сколько это стоит?', answer: 'Das kostet zehn Euro.', options: ['Das kostet zehn Euro.', 'Es ist sehr teuer.', 'Das macht zehn Euro.'] },
+  { npcEs: 'Haben Sie etwas Günstigeres?', npcRu: 'Есть что-нибудь дешевле?', answer: 'Ja, wir haben dieses Angebot.', options: ['Ja, wir haben dieses Angebot.', 'Nein, alles ist teuer.', 'Ja, es ist sehr schön.'] },
+  // Погода
+  { npcEs: 'Es ist heute so heiß!', npcRu: 'Сегодня так жарко!', answer: 'Ja, ich schwitze!', options: ['Ja, ich schwitze!', 'Ja, mir ist kalt!', 'Ja, es regnet viel!'] },
+  { npcEs: 'Glaubst du, es wird regnen?', npcRu: 'Думаешь, будет дождь?', answer: 'Ja, die Wolken sind dunkel.', options: ['Ja, die Wolken sind dunkel.', 'Ja, die Sonne scheint.', 'Nein, der Himmel ist bewölkt.'] },
+  // Еда
+  { npcEs: 'Was empfiehlst du?', npcRu: 'Что рекомендуешь?', answer: 'Das Hähnchen ist sehr lecker.', options: ['Das Hähnchen ist sehr lecker.', 'Das Hähnchen ist sehr kalt.', 'Die Suppe ist sehr teuer.'] },
+  { npcEs: 'Ist der Kaffee gut?', npcRu: 'Хороший кофе?', answer: 'Ja, er ist frisch gemacht.', options: ['Ja, er ist frisch gemacht.', 'Ja, er ist sehr kalt.', 'Nein, er ist zu süß.'] },
+  // Дорога
+  { npcEs: 'Entschuldigung, wo ist die Bank?', npcRu: 'Простите, где банк?', answer: 'Sie ist zwei Straßen weiter.', options: ['Sie ist zwei Straßen weiter.', 'Sie ist sehr weit weg.', 'Sie ist in der Bank.'] },
+  { npcEs: 'Gibt es eine Apotheke in der Nähe?', npcRu: 'Есть аптека рядом?', answer: 'Ja, biegen Sie rechts ab.', options: ['Ja, biegen Sie rechts ab.', 'Ja, sie ist sehr weit.', 'Nein, biegen Sie rechts ab.'] },
+  // Транспорт
+  { npcEs: 'Wann fährt der Bus ab?', npcRu: 'В котором часу отходит автобус?', answer: 'Um halb vier.', options: ['Um halb vier.', 'In halb vier.', 'Um drei und halb.'] },
+  // Знакомство
+  { npcEs: 'Wie alt bist du?', npcRu: 'Сколько тебе лет?', answer: 'Ich bin fünfundzwanzig.', options: ['Ich bin fünfundzwanzig.', 'Ich habe fünfundzwanzig.', 'Ich bin fünfundzwanzig Jahre.'] },
+  // Приглашение
+  { npcEs: 'Möchtest du einen Kaffee?', npcRu: 'Хочешь кофе?', answer: 'Ja, sehr gerne!', options: ['Ja, sehr gerne!', 'Ja, ich liebe Kaffee!', 'Ja, ich möchte einen!'] },
+  // Прощание
+  { npcEs: 'Bis bald!', npcRu: 'До скорого!', answer: 'Gleichfalls! Pass auf dich auf!', options: ['Gleichfalls! Pass auf dich auf!', 'Gleichfalls! Bis morgen!', 'Ja! Pass auf dich auf!'] },
+  // Комплимент
+  { npcEs: 'Was für ein schönes Outfit!', npcRu: 'Какой красивый наряд!', answer: 'Vielen Dank!', options: ['Vielen Dank!', 'Ja, es ist schön!', 'Bitte sehr!'] },
+  // Здоровье
+  { npcEs: 'Wie fühlst du dich?', npcRu: 'Как ты себя чувствуешь?', answer: 'Ich habe ein bisschen Kopfschmerzen.', options: ['Ich habe ein bisschen Kopfschmerzen.', 'Ich fühle mich zu Hause.', 'Ich habe viel Kaffee.'] },
+  // Хобби
+  { npcEs: 'Was machst du gerne?', npcRu: 'Что тебе нравится делать?', answer: 'Ich tanze und lese gerne.', options: ['Ich tanze und lese gerne.', 'Ich mag Musik sehr.', 'Ich tanze und laufe gerne.'] },
+  // Работа
+  { npcEs: 'Was machst du beruflich?', npcRu: 'Чем ты занимаешься?', answer: 'Ich bin Student.', options: ['Ich bin Student.', 'Ich studiere.', 'Ich bin der Student.'] },
+  // Семья
+  { npcEs: 'Hast du Geschwister?', npcRu: 'Есть братья или сёстры?', answer: 'Ja, ich habe einen älteren Bruder.', options: ['Ja, ich habe einen älteren Bruder.', 'Ja, ich habe einen jüngeren Bruder.', 'Ja, ich habe ältere Brüder.'] },
+  // Планы
+  { npcEs: 'Was machst du heute Abend?', npcRu: 'Что будешь делать сегодня вечером?', answer: 'Ich werde Deutsch lernen.', options: ['Ich werde Deutsch lernen.', 'Ich lerne morgen.', 'Ich werde Deutsch machen.'] },
+  // Комплимент за язык
+  { npcEs: 'Du sprichst sehr gut Deutsch!', npcRu: 'Ты очень хорошо говоришь по-немецки!', answer: 'Danke, ich lerne noch.', options: ['Danke, ich lerne noch.', 'Danke, ich spreche sehr gut.', 'Danke, ich übe noch.'] },
 ];
+
 const FILLS_DE = [
   { npcEs: 'Was hast du heute gegessen?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Ich habe ___ gegessen.', youRu: 'Я ел(а) ___.', pool: 5 },
   { npcEs: 'Was möchtest du trinken?', npcRu: 'Что хочешь выпить?', youEs: 'Ich möchte ___.', youRu: 'Я хочу ___.', pool: 5 },
@@ -119,6 +233,9 @@ const FILLS_DE = [
   { npcEs: 'Wohin gehst du?', npcRu: 'Куда ты идёшь?', youEs: 'Ich gehe zum ___.', youRu: 'Я иду в ___.', pool: 6 },
   { npcEs: 'Wie ist das Wetter?', npcRu: 'Какая погода?', youEs: 'Heute ist es ___.', youRu: 'Сегодня ___.', pool: 10 },
   { npcEs: 'Sag etwas Nettes 😊', npcRu: 'Скажи что-нибудь приятное 😊', youEs: 'Du bist ___!', youRu: 'Ты ___!', pool: 13 },
+  { npcEs: 'Wie heißt deine Mutter?', npcRu: 'Как зовут твою маму?', youEs: 'Meine Mutter heißt ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
+  { npcEs: 'Wie reist du am liebsten?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Ich reise am liebsten mit dem ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
+  { npcEs: 'Wie viele Tage hat eine Woche?', npcRu: 'Сколько дней в неделе?', youEs: 'Eine Woche hat ___ Tage.', youRu: 'В неделе ___ дней.', pool: 2 },
 ];
 
 // убрать артикль по языку
