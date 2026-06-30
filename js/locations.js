@@ -2,15 +2,21 @@
 //  Карта: локации, прохожие, сундуки, диалоги, подбор слов (SRS)
 // ============================================================
 import { CARDS as CARDS_ES } from './cards.js';
-import { CARDS as CARDS_EN } from './cards-en.js';
+import { CARDS as CARDS_EN_BASE } from './cards-en.js';
+import { CARDS_EXTRA as CARDS_EN_EXTRA } from './cards-en-extra.js';
 import { CARDS as CARDS_DE } from './cards-de.js';
+import { CARDS_DE_EXTRA_A } from './cards-de-extra-a.js';
+import { CARDS_DE_EXTRA_B } from './cards-de-extra-b.js';
 import * as store from './store.js';
 import * as srs from './srs.js';
+
+const CARDS_EN = [...CARDS_EN_BASE, ...CARDS_EN_EXTRA];
+const CARDS_DE_ALL = [...CARDS_DE, ...CARDS_DE_EXTRA_A, ...CARDS_DE_EXTRA_B];
 
 export function getCards() {
   const lang = store.getGame().lang || 'es';
   if (lang === 'en') return CARDS_EN;
-  if (lang === 'de') return CARDS_DE;
+  if (lang === 'de') return CARDS_DE_ALL;
   return CARDS_ES;
 }
 

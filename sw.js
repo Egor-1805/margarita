@@ -1,7 +1,7 @@
 // Pueblo — service worker
 // Стратегия: stale-while-revalidate — мгновенно отдаём из кэша,
 // в фоне тянем свежую версию и обновляем кэш (обновления доходят со 2-й загрузки).
-const CACHE = 'margarita-v9';
+const CACHE = 'margarita-v11';
 const ASSETS = [
   './',
   './index.html',
@@ -9,7 +9,10 @@ const ASSETS = [
   './js/app.js',
   './js/cards.js',
   './js/cards-en.js',
+  './js/cards-en-extra.js',
   './js/cards-de.js',
+  './js/cards-de-extra-a.js',
+  './js/cards-de-extra-b.js',
   './js/srs.js',
   './js/store.js',
   './js/avatar.js',

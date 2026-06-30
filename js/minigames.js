@@ -394,7 +394,7 @@ export function runDialogue(dlg) {
     m.onAbort = () => { m.close(); resolve({ correct: false, coins: 0 }); };
     const optsHTML = dlg.options.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${o}</button>`).join('');
     const youLine = dlg.kind === 'fill'
-      ? `<div class="mg-q">Ответь: <b>${dlg.youEs.replace('___', '<span class="mg-blank">___</span>')}</b><br><span class="mg-ru sm">(${dlg.youRu}) — нужное слово: <b>${dlg.hint}</b></span></div>`
+      ? `<div class="mg-q">Ответь: <b>${dlg.youEs.replace('___', '<span class="mg-blank">___</span>')}</b><br><span class="mg-ru sm">${dlg.youRu}</span></div>`
       : `<div class="mg-q">Что ответишь?</div>`;
     m.body.replaceChildren(elFrom(`<div class="mg-quiz">
       <div class="mg-npc">🧑</div>
