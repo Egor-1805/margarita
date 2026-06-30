@@ -30,17 +30,17 @@ export const FORMATS = ['match', 'complete', 'memory', 'translate', 'picture', '
 export const LOCATIONS = [
   { id: 'salon',    name: 'Салон красоты',  es: 'Salón de Belleza', emoji: '💄', color: '#e07aa8', tx: 3,  ty: 3,  w: 5, h: 4, themes: [12] },
   { id: 'cafe',     name: 'Кафе',           es: 'Café',             emoji: '☕', color: '#e76f51', tx: 13, ty: 3,  w: 5, h: 4, themes: [5] },
-  { id: 'teatro',   name: 'Театр',          es: 'Teatro',           emoji: '🎭', color: '#9a5ea7', tx: 23, ty: 3,  w: 5, h: 4, themes: [1, 11] },
-  { id: 'love',     name: 'Дом любви',      es: 'Casa del Amor',    emoji: '💗', color: '#e23a6e', tx: 33, ty: 3,  w: 5, h: 4, themes: [13] },
+  { id: 'teatro',   name: 'Театр',          es: 'Teatro',           emoji: '🎭', color: '#9a5ea7', tx: 20, ty: 3,  w: 5, h: 4, themes: [1, 11] },
+  { id: 'love',     name: 'Дом любви',      es: 'Casa del Amor',    emoji: '💗', color: '#e23a6e', tx: 35, ty: 3,  w: 5, h: 4, themes: [13] },
   { id: 'home',     name: 'Дом и быт',      es: 'La Casa',          emoji: '🏠', color: '#9a8c98', tx: 3,  ty: 11, w: 5, h: 4, themes: [8] },
-  { id: 'bank',     name: 'Банк',           es: 'Banco',            emoji: '🏦', color: '#5b8e7d', tx: 37, ty: 11, w: 5, h: 4, themes: [2, 7] },
+  { id: 'bank',     name: 'Банк',           es: 'Banco',            emoji: '🏦', color: '#5b8e7d', tx: 37, ty: 11, w: 5, h: 4, themes: [2] },
   { id: 'gym',      name: 'Спортзал',       es: 'Gimnasio',         emoji: '🏋️', color: '#4d908e', tx: 3,  ty: 19, w: 5, h: 4, themes: [9] },
   { id: 'mercado',  name: 'Рынок',          es: 'Mercado',          emoji: '🥕', color: '#43aa8b', tx: 37, ty: 19, w: 5, h: 4, themes: [5] },
   { id: 'school',   name: 'Школа',          es: 'Escuela',          emoji: '🏫', color: '#577590', tx: 12, ty: 25, w: 6, h: 4, themes: [3, 2] },
   { id: 'park',     name: 'Парк',           es: 'Parque',           emoji: '🌳', color: '#43aa8b', tx: 22, ty: 26, w: 5, h: 4, themes: [10] },
   { id: 'market',   name: 'Магазин одежды', es: 'Tienda',           emoji: '🛍️', color: '#f9c74f', tx: 33, ty: 25, w: 5, h: 4, themes: [7] },
   { id: 'hospital', name: 'Больница',       es: 'Hospital',         emoji: '🏥', color: '#e07a5f', tx: 2,  ty: 26, w: 5, h: 4, themes: [9] },
-  { id: 'casino', name: 'Казино',  emoji: '🎰', color: '#f4c430', tx: 29, ty: 3,  w: 3, h: 4, themes: [2] },
+  { id: 'casino', name: 'Казино',  emoji: '🎰', color: '#f4c430', tx: 28, ty: 3,  w: 3, h: 4, themes: [2] },
 ].map(l => ({ ...l, games: FORMATS }));
 
 // прохожие — разбросаны по всей карте

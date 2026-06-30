@@ -340,18 +340,22 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
 
   // ноги — скрываем если в закрытом транспорте
   const hiddenLegs = veh && veh !== 'none' && veh !== 'skateboard' && veh !== 'bike';
-  const step = (!hiddenLegs && moving) ? Math.sin(phase) * 3 * u : 0;
+  const onBoard = veh === 'skateboard';
+  const step = (!hiddenLegs && !onBoard && moving) ? Math.sin(phase) * 3 * u : 0;
+  // на скейте — статичная стойка (одна нога впереди, одна сзади), без бега
+  const boardOffX = onBoard ? 2 * u : 0;
+  const boardOffY = onBoard ? 1.5 * u : 0;
   if (!hiddenLegs) {
     const legColor = girl ? shade(skin, -0.14) : '#3a4e72';
     const shoeColor = girl ? '#c0507a' : '#2a3a58';
     ctx.fillStyle = legColor;
-    rr(ctx, sx - 5.5 * u, yy + 6 * u + step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+    rr(ctx, sx - 5.5 * u - boardOffX, yy + 6 * u + step + boardOffY, 3.8 * u, 5.5 * u, 2); ctx.fill();
     ctx.fillStyle = shoeColor;
-    rr(ctx, sx - 6 * u, yy + 10.8 * u + step, 5 * u, 2.2 * u, 1); ctx.fill();
+    rr(ctx, sx - 6 * u - boardOffX, yy + 10.8 * u + step + boardOffY, 5 * u, 2.2 * u, 1); ctx.fill();
     ctx.fillStyle = legColor;
-    rr(ctx, sx + 1.7 * u, yy + 6 * u - step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+    rr(ctx, sx + 1.7 * u + boardOffX, yy + 6 * u - step + boardOffY, 3.8 * u, 5.5 * u, 2); ctx.fill();
     ctx.fillStyle = shoeColor;
-    rr(ctx, sx + 1.2 * u, yy + 10.8 * u - step, 5 * u, 2.2 * u, 1); ctx.fill();
+    rr(ctx, sx + 1.2 * u + boardOffX, yy + 10.8 * u - step + boardOffY, 5 * u, 2.2 * u, 1); ctx.fill();
   }
 
   // тело
