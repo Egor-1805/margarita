@@ -77,6 +77,18 @@ function isChestOpen(id) { return store.getGame().openedChests[id] === todayKey(
 async function openChest(chest) {
   world.pause(); $('#actionBtn').classList.add('hidden');
   try {
+    if (chest.secret) {
+      const code = prompt('🔒 Введи секретный код:');
+      if (code === '1805') {
+        store.addRewards(20000, 0);
+        store.getGame().devChestOpened = true;
+        store.save(); hud();
+        toast('🎊 Код верный! +20 000 🪙');
+      } else if (code !== null) {
+        toast('❌ Неверный код');
+      }
+      return;
+    }
     const loc = LOCATIONS[(Math.random() * LOCATIONS.length) | 0];
     const fmt = FORMATS[(Math.random() * FORMATS.length) | 0];
     const cards = pickWords(loc.themes, 5);
@@ -328,6 +340,37 @@ async function talkAya() {
   } finally { world.resume(); }
 }
 
+// ---------- памятники / декорации ----------
+async function talkMonument(mon) {
+  world.pause(); $('#actionBtn').classList.add('hidden');
+  try {
+    const cards = pickWords([mon.region], 8);
+    if (!cards.length) { toast('...'); return; }
+    const card = cards[(Math.random() * cards.length) | 0];
+    const wrong = cards.filter(c => c !== card).slice(0, 2).map(c => c.ru);
+    if (wrong.length < 2) { toast('Не хватает слов для задания'); return; }
+    const opts = [...wrong, card.ru].sort(() => Math.random() - 0.5);
+    const coins = await new Promise(resolve => {
+      const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-quiz" style="text-align:center;padding:1.5rem">
+        <div style="font-size:1.8rem;margin-bottom:.5rem">${mon.label}</div>
+        <div style="font-size:1.4rem;font-weight:700;margin:.75rem 0">${card.es}</div>
+        <div style="font-size:2rem">${card.emoji}</div>
+        <div class="mg-q" style="margin:.75rem 0">Что это значит?</div>
+        <div class="mg-opts">${opts.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${o}</button>`).join('')}</div>
+      </div></div></div>`);
+      document.body.appendChild(ov);
+      ov.querySelectorAll('.mg-opt').forEach(b => b.onclick = () => {
+        const ok = decodeURIComponent(b.dataset.v) === card.ru;
+        ov.querySelectorAll('.mg-opt').forEach(x => { x.disabled = true; if (decodeURIComponent(x.dataset.v) === card.ru) x.classList.add('right'); });
+        if (!ok) b.classList.add('wrong');
+        setTimeout(() => { ov.remove(); resolve(ok ? 2 : 1); }, ok ? 900 : 1100);
+      });
+    });
+    store.addRewards(coins, 0); store.save(); hud();
+    toast(`${coins === 2 ? '✓ ' : ''}+${coins} 🪙`);
+  } finally { world.resume(); }
+}
+
 // ---------- тост ----------
 function toast(msg) {
   const t = el(`<div class="toast">${msg}</div>`); document.body.appendChild(t);
@@ -340,7 +383,7 @@ function init() {
   const used = store.checkStreakBreak(); store.save();
   hud();
   world = createWorld($('#game'), store.getGame().avatar, {
-    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen, onAya: talkAya,
+    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen, onAya: talkAya, onMonument: talkMonument,
   });
   world.attachJoystick($('#joystick'), $('#joynub'));
   $('#actionBtn').onclick = () => world.interact();

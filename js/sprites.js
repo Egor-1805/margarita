@@ -397,6 +397,13 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   // волосы
   drawHair(ctx, sx, yy, u, hair, look.hairStyle, girl);
 
+  // перекрываем волосы на лице — рисуем лицо поверх
+  const faceG = ctx.createRadialGradient(sx - 1.5 * u, yy - 8 * u, 0, sx, yy - 6 * u, 7.5 * u);
+  faceG.addColorStop(0, girl ? shade(skin, 0.22) : shade(skin, 0.14));
+  faceG.addColorStop(1, shade(skin, -0.04));
+  ctx.fillStyle = faceG;
+  ctx.beginPath(); ctx.arc(sx, yy - 6 * u, 6.4 * u, 0, Math.PI * 2); ctx.fill();
+
   // брови
   ctx.strokeStyle = shade(hair, -0.25); ctx.lineWidth = 1.3 * u; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(sx - 4.2 * u, yy - 9.5 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.2 * u, sx - 0.5 * u, yy - 9.5 * u); ctx.stroke();
@@ -635,6 +642,92 @@ export function drawBush(ctx, sx, sy, T) {
   ctx.beginPath(); ctx.arc(sx + T * 0.13, sy - T * 0.08, T * 0.18, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.beginPath(); ctx.arc(sx - T * 0.1, sy - T * 0.12, T * 0.1, 0, Math.PI * 2); ctx.fill();
+}
+
+export function drawBench(ctx, sx, sy, T) {
+  const u = T / 26;
+  ctx.fillStyle = 'rgba(0,0,0,0.1)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 4 * u, 5 * u, 1.2 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#7a5a30';
+  ctx.fillRect(sx - 4.5 * u, sy, 1.2 * u, 3.5 * u);
+  ctx.fillRect(sx + 3.3 * u, sy, 1.2 * u, 3.5 * u);
+  ctx.fillStyle = '#c4944a';
+  rr(ctx, sx - 5 * u, sy - 2.5 * u, 10 * u, 2 * u, 1); ctx.fill();
+  ctx.fillStyle = '#b58438';
+  rr(ctx, sx - 5 * u, sy - 6 * u, 10 * u, 1.5 * u, 1); ctx.fill();
+  ctx.fillRect(sx - 3.5 * u, sy - 6 * u, 1 * u, 3.5 * u);
+  ctx.fillRect(sx + 2.5 * u, sy - 6 * u, 1 * u, 3.5 * u);
+}
+
+export function drawLamp(ctx, sx, sy, T) {
+  const u = T / 26;
+  ctx.fillStyle = '#555';
+  ctx.fillRect(sx - 1.2 * u, sy - 8 * u, 1.8 * u, 12 * u);
+  rr(ctx, sx - 2.5 * u, sy + 3.5 * u, 5 * u, 2 * u, 1); ctx.fill();
+  ctx.strokeStyle = '#666'; ctx.lineWidth = 1.2 * u;
+  ctx.beginPath(); ctx.moveTo(sx, sy - 8 * u); ctx.lineTo(sx + 4 * u, sy - 8 * u); ctx.stroke();
+  ctx.fillStyle = '#ffe08a';
+  ctx.beginPath(); ctx.ellipse(sx + 4 * u, sy - 7.5 * u, 2 * u, 1.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+  const gl = ctx.createRadialGradient(sx + 4 * u, sy - 7.5 * u, 0, sx + 4 * u, sy - 7.5 * u, 5 * u);
+  gl.addColorStop(0, 'rgba(255,220,100,0.35)'); gl.addColorStop(1, 'rgba(255,220,100,0)');
+  ctx.fillStyle = gl; ctx.beginPath(); ctx.arc(sx + 4 * u, sy - 7.5 * u, 5 * u, 0, Math.PI * 2); ctx.fill();
+}
+
+export function drawMonument(ctx, sx, sy, T, type, pulse) {
+  const u = T / 26;
+  ctx.fillStyle = 'rgba(0,0,0,0.14)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 6 * u, 6 * u, 1.8 * u, 0, 0, Math.PI * 2); ctx.fill();
+
+  if (type === 'statue') {
+    ctx.fillStyle = '#b8a89a';
+    rr(ctx, sx - 4 * u, sy, 8 * u, 6 * u, 1); ctx.fill();
+    ctx.fillStyle = '#a09080';
+    ctx.beginPath(); ctx.arc(sx, sy - 5 * u, 3.5 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.fillRect(sx - 2.5 * u, sy - 5 * u, 5 * u, 7 * u);
+    ctx.fillRect(sx - 1 * u, sy - 9 * u, 2 * u, 5 * u);
+    ctx.strokeStyle = `rgba(255,220,120,${0.3 + 0.15 * pulse})`; ctx.lineWidth = 1.5 * u;
+    ctx.beginPath(); ctx.arc(sx, sy - 3 * u, 5.5 * u, 0, Math.PI * 2); ctx.stroke();
+  } else if (type === 'arch') {
+    ctx.fillStyle = '#d4c4b0';
+    rr(ctx, sx - 8 * u, sy - 10 * u, 3 * u, 16 * u, 1); ctx.fill();
+    rr(ctx, sx + 5 * u, sy - 10 * u, 3 * u, 16 * u, 1); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx - 1 * u, sy - 8 * u, 7 * u, Math.PI, 0); ctx.fill();
+    ctx.fillStyle = '#c4b4a0';
+    ctx.fillRect(sx - 8 * u, sy - 0.5 * u, 16 * u, 1.5 * u);
+  } else if (type === 'obelisk') {
+    ctx.fillStyle = '#8a9aa0';
+    rr(ctx, sx - 3.5 * u, sy + 1 * u, 7 * u, 5 * u, 1); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(sx - 3 * u, sy + 1 * u); ctx.lineTo(sx + 3 * u, sy + 1 * u);
+    ctx.lineTo(sx + 1.5 * u, sy - 11 * u); ctx.lineTo(sx - 1.5 * u, sy - 11 * u);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#f4c430';
+    ctx.beginPath();
+    ctx.moveTo(sx - 1.5 * u, sy - 11 * u); ctx.lineTo(sx + 1.5 * u, sy - 11 * u);
+    ctx.lineTo(sx, sy - 14.5 * u); ctx.closePath(); ctx.fill();
+  } else if (type === 'fountain_small') {
+    ctx.fillStyle = '#8a9db0';
+    ctx.beginPath(); ctx.ellipse(sx, sy + 2 * u, 5.5 * u, 3 * u, 0, 0, Math.PI * 2); ctx.fill();
+    const wg = ctx.createRadialGradient(sx, sy + 2 * u, 0, sx, sy + 2 * u, 4.5 * u);
+    wg.addColorStop(0, '#c8f0ff'); wg.addColorStop(1, '#72c0dc');
+    ctx.fillStyle = wg;
+    ctx.beginPath(); ctx.ellipse(sx, sy + 2 * u, 4.5 * u, 2.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = 'rgba(180,230,250,0.7)'; ctx.lineWidth = 1.2 * u;
+    for (let i = 0; i < 3; i++) {
+      const a = (i / 3) * Math.PI * 2;
+      ctx.beginPath(); ctx.moveTo(sx, sy + 1 * u);
+      ctx.quadraticCurveTo(sx + Math.cos(a) * 3 * u, sy + 1 * u + Math.sin(a) * 1.5 * u - 3 * u,
+        sx + Math.cos(a) * 4 * u, sy + 2 * u + Math.sin(a) * 2 * u); ctx.stroke();
+    }
+  }
+
+  // floating emoji above monument
+  ctx.font = `${Math.round(T * 0.36)}px serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  const ey = sy - 16 * u - (1 + Math.sin(pulse * Math.PI * 2)) * 1.2 * u;
+  ctx.fillStyle = 'rgba(255,255,255,0.88)';
+  ctx.beginPath(); ctx.arc(sx, ey, T * 0.22, 0, Math.PI * 2); ctx.fill();
+  ctx.fillText('❓', sx, ey);
 }
 
 // ---------- утилита затемнения цвета ----------

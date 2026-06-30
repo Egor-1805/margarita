@@ -1,7 +1,7 @@
 // Pueblo — service worker
 // Стратегия: stale-while-revalidate — мгновенно отдаём из кэша,
 // в фоне тянем свежую версию и обновляем кэш (обновления доходят со 2-й загрузки).
-const CACHE = 'margarita-v13';
+const CACHE = 'margarita-v14';
 const ASSETS = [
   './',
   './index.html',

@@ -37,7 +37,7 @@ const LANG_CONFIG = {
 // Параметры pitch/rate по полу — разница очень заметная
 const VOICE_PARAMS = {
   female: { pitch: 1.15, rate: 0.90 },
-  male:   { pitch: 0.72, rate: 0.85 },
+  male:   { pitch: 0.52, rate: 0.78 },
 };
 
 function pickVoice(cfg, pref) {

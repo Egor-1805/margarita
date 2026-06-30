@@ -1,8 +1,9 @@
 // ============================================================
 //  Движок открытого мира (вид сверху, canvas)
 // ============================================================
-import { LOCATIONS, MAP_W, MAP_H, PLAZA, doorTile, NPC_SPOTS, CHEST_SPOTS, PATHS } from './locations.js';
+import { LOCATIONS, MAP_W, MAP_H, PLAZA, doorTile, NPC_SPOTS, CHEST_SPOTS, PATHS, TREE_SPOTS, BUSH_SPOTS, BENCH_SPOTS, LAMP_SPOTS, MONUMENT_SPOTS } from './locations.js';
 import * as S from './sprites.js';
+import * as store from './store.js';
 
 const NPC_PALETTES = [
   { skin: '#f1c9a5', hair: '#3a2a20', shirt: '#4d908e' },
@@ -42,15 +43,16 @@ export function createWorld(canvas, look, handlers) {
   // сундуки
   const chests = CHEST_SPOTS.map(c => ({ ...c }));
 
-  // декор (деревья/кусты), не мешают движению
-  const decor = [];
-  for (let i = 0; i < 40; i++) {
-    const x = 1 + Math.random() * (MAP_W - 2), y = 1 + Math.random() * (MAP_H - 2);
-    if (insideAnyBuilding(x, y, 1)) continue;
-    if (Math.abs(x - PLAZA.x) < 3 && Math.abs(y - PLAZA.y) < 3) continue;
-    decor.push({ x, y, type: Math.random() < 0.7 ? 'tree' : 'bush' });
-  }
-  decor.sort((a, b) => a.y - b.y);
+  // декор — фиксированные позиции
+  const decor = [
+    ...TREE_SPOTS.map(([x, y]) => ({ x, y, type: 'tree' })),
+    ...BUSH_SPOTS.map(([x, y]) => ({ x, y, type: 'bush' })),
+    ...BENCH_SPOTS.map(b => ({ ...b, type: 'bench' })),
+    ...LAMP_SPOTS.map(([x, y]) => ({ x, y, type: 'lamp' })),
+  ].sort((a, b) => a.y - b.y);
+
+  // памятники (интерактивные)
+  const monuments = MONUMENT_SPOTS.map(m => ({ ...m }));
 
   const paths = PATHS;
 
@@ -127,9 +129,17 @@ export function createWorld(canvas, look, handlers) {
       if (d < bestD) { bestD = d; best = { type: 'npc', ref: n, label: '💬 Поговорить' }; }
     }
     for (const c of chests) {
-      if (handlers.isChestOpen && handlers.isChestOpen(c.id)) continue;
+      if (!c.secret && handlers.isChestOpen && handlers.isChestOpen(c.id)) continue;
+      if (c.secret && store.getGame().devChestOpened) continue;
       const d = Math.hypot(state.px - c.x, state.py - c.y);
-      if (d < bestD) { bestD = d; best = { type: 'chest', ref: c, label: '🎁 Открыть сундук' }; }
+      if (d < bestD) {
+        bestD = d;
+        best = { type: 'chest', ref: c, label: c.secret ? '🔒 ???' : '🎁 Открыть сундук' };
+      }
+    }
+    for (const mon of monuments) {
+      const d = Math.hypot(state.px - mon.x, state.py - mon.y);
+      if (d < bestD) { bestD = d; best = { type: 'monument', ref: mon, label: mon.label }; }
     }
     const da = Math.hypot(state.px - aya.x, state.py - aya.y - 0.3);
     if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Aya' }; }
@@ -145,11 +155,20 @@ export function createWorld(canvas, look, handlers) {
     S.drawGround(ctx, cam, vw, vh, T);
     S.drawPaths(ctx, cam, T, paths, PLAZA);
     S.drawFountain(ctx, PLAZA.x * T - cam.x, PLAZA.y * T - cam.y, T);
-    // деревья за зданиями
+    // декор (деревья, кусты, скамейки, фонари)
     for (const d of decor) {
       const sx = d.x * T - cam.x, sy = d.y * T - cam.y;
-      if (sx < -T || sx > vw + T || sy < -T || sy > vh + T) continue;
-      d.type === 'tree' ? S.drawTree(ctx, sx, sy, T) : S.drawBush(ctx, sx, sy, T);
+      if (sx < -T * 2 || sx > vw + T * 2 || sy < -T * 2 || sy > vh + T * 2) continue;
+      if (d.type === 'tree') S.drawTree(ctx, sx, sy, T);
+      else if (d.type === 'bush') S.drawBush(ctx, sx, sy, T);
+      else if (d.type === 'bench') S.drawBench(ctx, sx, sy, T);
+      else if (d.type === 'lamp') S.drawLamp(ctx, sx, sy, T);
+    }
+    // памятники
+    for (const mon of monuments) {
+      const sx = mon.x * T - cam.x, sy = mon.y * T - cam.y;
+      if (sx < -T * 2 || sx > vw + T * 2 || sy < -T * 2 || sy > vh + T * 2) continue;
+      S.drawMonument(ctx, sx, sy, T, mon.type, pulse);
     }
     // здания
     for (const b of buildings) {
@@ -162,8 +181,17 @@ export function createWorld(canvas, look, handlers) {
     }
     // сундуки
     for (const c of chests) {
-      const open = handlers.isChestOpen && handlers.isChestOpen(c.id);
-      S.drawChest(ctx, c.x * T - cam.x, c.y * T - cam.y, T, open, pulse);
+      const cx = c.x * T - cam.x, cy = c.y * T - cam.y;
+      if (c.secret) {
+        // секретный сундук — тёмный квадрат без свечения
+        if (!store.getGame().devChestOpened) {
+          ctx.fillStyle = '#0a0a0a';
+          ctx.fillRect(cx - T * 0.18, cy - T * 0.18, T * 0.36, T * 0.36);
+        }
+      } else {
+        const open = handlers.isChestOpen && handlers.isChestOpen(c.id);
+        S.drawChest(ctx, cx, cy, T, open, pulse);
+      }
     }
     // сущности по глубине
     const drawAya = () => {
@@ -223,7 +251,11 @@ export function createWorld(canvas, look, handlers) {
       base.style.pointerEvents = 'none';
       nub.style.transform = 'translate(-50%,-50%)';
       state.joy.active = false; state.joy.x = state.joy.y = 0;
+      touchId = null;
+      mouseActive = false;
     };
+    document.addEventListener('visibilitychange', () => { if (document.hidden) hideJoy(); });
+    window.addEventListener('blur', hideJoy);
     const updateNub = (clientX, clientY) => {
       const dx = clientX - cx, dy = clientY - cy;
       const d = Math.hypot(dx, dy) || 1;
@@ -279,6 +311,7 @@ export function createWorld(canvas, look, handlers) {
     else if (type === 'npc') handlers.onTalk && handlers.onTalk(ref);
     else if (type === 'chest') handlers.onChest && handlers.onChest(ref);
     else if (type === 'aya') handlers.onAya && handlers.onAya();
+    else if (type === 'monument') handlers.onMonument && handlers.onMonument(ref);
   }
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
@@ -294,7 +327,7 @@ export function createWorld(canvas, look, handlers) {
     getNearby: () => state.nearby,
     setLook: (l) => { state.look = l; },
     pause: () => { state.paused = true; },
-    resume: () => { state.paused = false; last = performance.now(); },
+    resume: () => { state.paused = false; last = performance.now(); state.joy.x = 0; state.joy.y = 0; state.joy.active = false; },
     destroy: () => { cancelAnimationFrame(raf); window.removeEventListener('keydown', kd); window.removeEventListener('keyup', ku); window.removeEventListener('resize', resize); },
   };
 }
