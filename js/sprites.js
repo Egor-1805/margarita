@@ -326,9 +326,6 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   const u     = T / 26;
   const veh   = look.vehicle;
 
-  // рисуем транспорт под персонажем
-  drawVehicle(ctx, sx, sy, T, veh, phase);
-
   // на некоторых транспортных средствах персонаж сидит выше
   const vehLift = (veh === 'horse') ? -4 * u : (veh === 'moto' || veh === 'bike' || veh === 'scooter') ? -2 * u : (veh === 'car') ? -3 * u : (veh === 'yacht') ? -2 * u : (veh === 'heli') ? -5 * u : 0;
   const bob   = moving && !veh ? Math.sin(phase) * 1.4 : (veh === 'horse' ? Math.sin(phase * 3) * 1.2 : 0);
@@ -341,20 +338,21 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
     ctx.beginPath(); ctx.ellipse(sx, sy + 11 * u, 9 * u, 4 * u, 0, 0, Math.PI * 2); ctx.fill();
   }
 
-  // ноги
-  const step     = moving ? Math.sin(phase) * 3 * u : 0;
-  const legColor = girl ? shade(skin, -0.14) : '#3a4e72';
-  const shoeColor = girl ? '#c0507a' : '#2a3a58';
-  // левая нога
-  ctx.fillStyle = legColor;
-  rr(ctx, sx - 5.5 * u, yy + 6 * u + step, 3.8 * u, 5.5 * u, 2); ctx.fill();
-  ctx.fillStyle = shoeColor;
-  rr(ctx, sx - 6 * u, yy + 10.8 * u + step, 5 * u, 2.2 * u, 1); ctx.fill();
-  // правая нога
-  ctx.fillStyle = legColor;
-  rr(ctx, sx + 1.7 * u, yy + 6 * u - step, 3.8 * u, 5.5 * u, 2); ctx.fill();
-  ctx.fillStyle = shoeColor;
-  rr(ctx, sx + 1.2 * u, yy + 10.8 * u - step, 5 * u, 2.2 * u, 1); ctx.fill();
+  // ноги — скрываем если в закрытом транспорте
+  const hiddenLegs = veh && veh !== 'none' && veh !== 'skateboard' && veh !== 'bike';
+  const step = (!hiddenLegs && moving) ? Math.sin(phase) * 3 * u : 0;
+  if (!hiddenLegs) {
+    const legColor = girl ? shade(skin, -0.14) : '#3a4e72';
+    const shoeColor = girl ? '#c0507a' : '#2a3a58';
+    ctx.fillStyle = legColor;
+    rr(ctx, sx - 5.5 * u, yy + 6 * u + step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+    ctx.fillStyle = shoeColor;
+    rr(ctx, sx - 6 * u, yy + 10.8 * u + step, 5 * u, 2.2 * u, 1); ctx.fill();
+    ctx.fillStyle = legColor;
+    rr(ctx, sx + 1.7 * u, yy + 6 * u - step, 3.8 * u, 5.5 * u, 2); ctx.fill();
+    ctx.fillStyle = shoeColor;
+    rr(ctx, sx + 1.2 * u, yy + 10.8 * u - step, 5 * u, 2.2 * u, 1); ctx.fill();
+  }
 
   // тело
   if (girl) {
@@ -461,6 +459,54 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   }
 
   drawHat(ctx, sx, yy - 12.5 * u, u, look.hat);
+  drawAcc(ctx, sx, yy, u, look.acc, girl);
+  // транспорт рисуется поверх ног
+  drawVehicle(ctx, sx, sy, T, veh, phase);
+}
+
+function drawAcc(ctx, sx, yy, u, acc, girl) {
+  if (!acc || acc === 'none') return;
+  ctx.save();
+  ctx.lineCap = 'round';
+  const eyeY = yy - 6.8 * u;
+
+  if (acc === 'gafas') {
+    ctx.fillStyle = 'rgba(180,220,240,0.45)';
+    ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 0.85 * u;
+    rr(ctx, sx - 4.8 * u, eyeY - 1.2 * u, 3.4 * u, 2.2 * u, 1.2); ctx.fill(); ctx.stroke();
+    rr(ctx, sx + 1.4 * u, eyeY - 1.2 * u, 3.4 * u, 2.2 * u, 1.2); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 1.4 * u, eyeY - 0.1 * u); ctx.lineTo(sx + 1.4 * u, eyeY - 0.1 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 4.8 * u, eyeY - 0.1 * u); ctx.lineTo(sx - 6.2 * u, eyeY + 0.6 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 4.8 * u, eyeY - 0.1 * u); ctx.lineTo(sx + 6.2 * u, eyeY + 0.6 * u); ctx.stroke();
+  } else if (acc === 'sol') {
+    ctx.fillStyle = 'rgba(30,15,70,0.82)';
+    rr(ctx, sx - 4.8 * u, eyeY - 1.2 * u, 3.4 * u, 2.2 * u, 1.2); ctx.fill();
+    rr(ctx, sx + 1.4 * u, eyeY - 1.2 * u, 3.4 * u, 2.2 * u, 1.2); ctx.fill();
+    ctx.strokeStyle = '#2a1a4a'; ctx.lineWidth = 0.85 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 1.4 * u, eyeY - 0.1 * u); ctx.lineTo(sx + 1.4 * u, eyeY - 0.1 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx - 4.8 * u, eyeY - 0.1 * u); ctx.lineTo(sx - 6.2 * u, eyeY + 0.6 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 4.8 * u, eyeY - 0.1 * u); ctx.lineTo(sx + 6.2 * u, eyeY + 0.6 * u); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,0.18)';
+    ctx.fillRect(sx - 4.2 * u, eyeY - 0.9 * u, 0.8 * u, 0.6 * u);
+    ctx.fillRect(sx + 2.0 * u, eyeY - 0.9 * u, 0.8 * u, 0.6 * u);
+  } else if (acc === 'pendientes' && girl) {
+    ctx.fillStyle = '#f4c430';
+    ctx.beginPath(); ctx.arc(sx - 6.8 * u, eyeY + 1.6 * u, 1.4 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 6.8 * u, eyeY + 1.6 * u, 1.4 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+    ctx.beginPath(); ctx.arc(sx - 7.2 * u, eyeY + 1.2 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(sx + 6.4 * u, eyeY + 1.2 * u, 0.5 * u, 0, Math.PI * 2); ctx.fill();
+  } else if (acc === 'bufanda') {
+    const scarfG = ctx.createLinearGradient(sx - 8 * u, 0, sx + 8 * u, 0);
+    scarfG.addColorStop(0, '#e23a6e'); scarfG.addColorStop(0.5, '#ff6b9d'); scarfG.addColorStop(1, '#e23a6e');
+    ctx.fillStyle = scarfG;
+    rr(ctx, sx - 6.5 * u, yy - 4.5 * u, 13 * u, 2.8 * u, 3); ctx.fill();
+    ctx.strokeStyle = '#c0306a'; ctx.lineWidth = 0.6 * u;
+    for (let i = -5; i <= 5; i++) {
+      ctx.beginPath(); ctx.moveTo(sx + i * 1.1 * u, yy - 1.7 * u); ctx.lineTo(sx + i * 1.1 * u, yy - 0.2 * u); ctx.stroke();
+    }
+  }
+  ctx.restore();
 }
 
 function drawHair(ctx, sx, yy, u, hair, style, girl) {

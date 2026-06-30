@@ -130,7 +130,8 @@ export function createWorld(canvas, look, handlers) {
     }
     for (const c of chests) {
       if (!c.secret && handlers.isChestOpen && handlers.isChestOpen(c.id)) continue;
-      if (c.secret && store.getGame().devChestOpened) continue;
+      // секретный сундук всегда доступен (безлимитный)
+      if (false) continue;
       const d = Math.hypot(state.px - c.x, state.py - c.y);
       if (d < bestD) {
         bestD = d;
@@ -183,11 +184,8 @@ export function createWorld(canvas, look, handlers) {
     for (const c of chests) {
       const cx = c.x * T - cam.x, cy = c.y * T - cam.y;
       if (c.secret) {
-        // секретный сундук — тёмный квадрат без свечения
-        if (!store.getGame().devChestOpened) {
-          ctx.fillStyle = '#0a0a0a';
-          ctx.fillRect(cx - T * 0.18, cy - T * 0.18, T * 0.36, T * 0.36);
-        }
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(cx - T * 0.18, cy - T * 0.18, T * 0.36, T * 0.36);
       } else {
         const open = handlers.isChestOpen && handlers.isChestOpen(c.id);
         S.drawChest(ctx, cx, cy, T, open, pulse);
@@ -235,6 +233,11 @@ export function createWorld(canvas, look, handlers) {
   function attachJoystick(base, nub) {
     const R = 48;
     let touchId = null, cx = 0, cy = 0, mouseActive = false;
+    let nubRaf = 0, nubDx = 0, nubDy = 0, nubD = 1, nubCl = 0;
+    const flushNub = () => {
+      nubRaf = 0;
+      nub.style.transform = `translate(calc(-50% + ${((nubDx / nubD) * nubCl).toFixed(1)}px), calc(-50% + ${((nubDy / nubD) * nubCl).toFixed(1)}px))`;
+    };
 
     const isUIEl = (el) => el && (el.closest('#hud') || el.closest('#overlay') ||
       el.closest('.mg-overlay') || el.closest('#actionBtn'));
@@ -249,6 +252,7 @@ export function createWorld(canvas, look, handlers) {
     const hideJoy = () => {
       base.style.opacity = '0';
       base.style.pointerEvents = 'none';
+      if (nubRaf) { cancelAnimationFrame(nubRaf); nubRaf = 0; }
       nub.style.transform = 'translate(-50%,-50%)';
       state.joy.active = false; state.joy.x = state.joy.y = 0;
       touchId = null;
@@ -260,9 +264,10 @@ export function createWorld(canvas, look, handlers) {
       const dx = clientX - cx, dy = clientY - cy;
       const d = Math.hypot(dx, dy) || 1;
       const cl = Math.min(d, R);
-      nub.style.transform = `translate(calc(-50% + ${(dx / d) * cl}px), calc(-50% + ${(dy / d) * cl}px))`;
+      nubDx = dx; nubDy = dy; nubD = d; nubCl = cl;
       state.joy.x = (dx / Math.max(d, R)) * (d > 8 ? 1 : 0);
       state.joy.y = (dy / Math.max(d, R)) * (d > 8 ? 1 : 0);
+      if (!nubRaf) nubRaf = requestAnimationFrame(flushNub);
     };
 
     document.addEventListener('touchstart', (e) => {

@@ -46,6 +46,7 @@ function showAction(nearby) {
 }
 
 async function enterLocation(loc) {
+  if (loc.id === 'casino') { await enterCasino(); return; }
   world.pause(); $('#actionBtn').classList.add('hidden');
   try {
     const cards = pickWords(loc.themes, 6);
@@ -81,9 +82,8 @@ async function openChest(chest) {
       const code = prompt('🔒 Введи секретный код:');
       if (code === '1805') {
         store.addRewards(20000, 0);
-        store.getGame().devChestOpened = true;
         store.save(); hud();
-        toast('🎊 Код верный! +20 000 🪙');
+        toast('🎊 +20 000 🪙');
       } else if (code !== null) {
         toast('❌ Неверный код');
       }
@@ -503,6 +503,75 @@ async function talkMonument(mon) {
     });
     store.addRewards(coins, 0); store.save(); hud();
     toast(`${coins === 2 ? '✓ ' : ''}+${coins} 🪙`);
+  } finally { world.resume(); }
+}
+
+// ---------- казино ----------
+async function enterCasino() {
+  world.pause(); $('#actionBtn').classList.add('hidden');
+  try {
+    const COST = 5;
+    const g = store.getGame();
+    if (g.coins < COST) { toast(`Нужно хотя бы ${COST} 🪙`); return; }
+
+    const SYMS = ['🍒','🍋','🍊','🍇','⭐'];
+    function spin() { return SYMS[(Math.random() * SYMS.length) | 0]; }
+    function outcome() {
+      const r = Math.random() * 100;
+      if (r < 1.5)  return { reels: ['⭐','⭐','⭐'], coins: 20, label: '🎉 ДЖЕКПОТ!' };
+      if (r < 8.5)  { const s = SYMS[(Math.random()*4)|0]; return { reels: [s,s,s], coins: 15, label: '🏆 Три в ряд!' }; }
+      if (r < 20.5) { const s = spin(); return { reels: ['⭐', s, '⭐'], coins: 10, label: '✨ Отлично!' }; }
+      if (r < 45.5) { const s = spin(), b = spin(); return { reels: [s, s, b !== s ? b : SYMS[(SYMS.indexOf(b)+1)%5]], coins: 5, label: '👍 Неплохо!' }; }
+      return { reels: [spin(), spin(), spin()], coins: 1 + (Math.random() < 0.5 ? 1 : 0), label: '🍀 Везунчик!' };
+    }
+
+    await new Promise(resolve => {
+      const ov = el(`<div class="mg-overlay"><div class="mg-card cas-wrap">
+        <div class="cas-title">🎰 Казино — ставка ${COST} 🪙</div>
+        <div class="cas-reels">
+          <div class="cas-reel" id="r0">🎰</div>
+          <div class="cas-reel" id="r1">🎰</div>
+          <div class="cas-reel" id="r2">🎰</div>
+        </div>
+        <div class="cas-result" id="casResult"></div>
+        <div class="cas-btns">
+          <button class="mg-btn" id="casPlay">Крутить 🎲 (−${COST} 🪙)</button>
+          <button class="mg-btn cas-close" id="casClose">Выйти</button>
+        </div>
+      </div></div>`);
+      document.body.appendChild(ov);
+
+      let spinning = false;
+      const play = async () => {
+        if (spinning || store.getGame().coins < COST) { if (store.getGame().coins < COST) toast(`Нужно ${COST} 🪙`); return; }
+        spinning = true;
+        store.addRewards(-COST, 0); store.save(); hud();
+        ov.querySelector('#casResult').textContent = '';
+
+        const r0 = ov.querySelector('#r0'), r1 = ov.querySelector('#r1'), r2 = ov.querySelector('#r2');
+        const res = outcome();
+        // анимация
+        let t = 0;
+        const anim = setInterval(() => {
+          t++;
+          r0.textContent = spin();
+          if (t > 6) r1.textContent = spin();
+          if (t > 12) r2.textContent = spin();
+          if (t > 18) {
+            clearInterval(anim);
+            r0.textContent = res.reels[0];
+            r1.textContent = res.reels[1];
+            r2.textContent = res.reels[2];
+            store.addRewards(res.coins, 0); store.save(); hud();
+            ov.querySelector('#casResult').textContent = `${res.label} +${res.coins} 🪙`;
+            spinning = false;
+          }
+        }, 80);
+      };
+
+      ov.querySelector('#casPlay').onclick = play;
+      ov.querySelector('#casClose').onclick = () => { ov.remove(); resolve(); };
+    });
   } finally { world.resume(); }
 }
 
