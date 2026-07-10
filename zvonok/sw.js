@@ -1,4 +1,4 @@
-const CACHE = "zvonok-v1";
+const CACHE = "zvonok-v2";
 const ASSETS = [
   "./",
   "./index.html",
