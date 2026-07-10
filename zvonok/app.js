@@ -12,17 +12,20 @@ const ICE_CONFIG = {
   iceServers: [
     { urls: "stun:stun.l.google.com:19302" },
     { urls: "stun:stun.cloudflare.com:3478" },
-    {
-      urls: [
-        "turn:staticauth.openrelay.metered.ca:80",
-        "turn:staticauth.openrelay.metered.ca:443",
-        "turn:staticauth.openrelay.metered.ca:443?transport=tcp",
-      ],
-      username: "openrelayproject",
-      credential: "openrelayproject",
-    },
   ],
 };
+
+// Сюда позже добавится адрес выдачи TURN-кредов (Cloudflare Worker).
+const TURN_CREDS_URL = "";
+
+async function loadTurnServers() {
+  if (!TURN_CREDS_URL) return;
+  try {
+    const r = await fetch(TURN_CREDS_URL, { signal: AbortSignal.timeout(7000) });
+    const data = await r.json();
+    if (data && data.iceServers) ICE_CONFIG.iceServers.push(...data.iceServers);
+  } catch (e) { /* без TURN тоже пробуем */ }
+}
 
 const peerId = (role) => `zvonok-${SECRET}-${role}`;
 const roleFromId = (id) => id.split("-").pop();
@@ -40,6 +43,7 @@ let wakeLock = null;
 let ringer = null;
 let presenceInt = null;
 const online = {};          // role -> bool
+const presencePending = {}; // role -> {conn, timer, unavailable}
 
 // ============ Утилиты UI ============
 const $ = (id) => document.getElementById(id);
@@ -134,9 +138,6 @@ function stopMedia() {
 async function requestWakeLock() {
   try { wakeLock = await navigator.wakeLock.request("screen"); } catch (e) {}
 }
-function releaseWakeLock() {
-  if (wakeLock) { wakeLock.release().catch(() => {}); wakeLock = null; }
-}
 
 // ============ Peer / соединение ============
 function setConnStatus(state) {
@@ -192,7 +193,10 @@ function initPeer() {
   peer.on("error", (err) => {
     if (err.type === "peer-unavailable") {
       const role = roleFromId(String(err).match(/zvonok-[\w]+-(\w+)/)?.[0] || "");
-      if (role && FAMILY[role]) { online[role] = false; renderContacts(); }
+      if (role && FAMILY[role]) {
+        if (presencePending[role]) presencePending[role].unavailable = true;
+        setOnline(role, false);
+      }
       // если мы в состоянии исходящего вызова к недоступному — сообщаем
       if ($("screen-outgoing").classList.contains("active")) {
         cancelOutgoing(false);
@@ -207,19 +211,30 @@ function initPeer() {
   });
 }
 
-// Проверка, кто в сети: пробуем открыть data-соединение
+function setOnline(role, val) {
+  if (online[role] !== val) { online[role] = val; renderContacts(); }
+}
+
+// Проверка, кто в сети — через сигнальный сервер, БЕЗ прямого P2P:
+// если за 3,5 с сервер не ответил «нет такого пира», значит человек на связи.
 function checkPresence() {
-  if (!peer || peer.disconnected) return;
+  if (!peer || peer.disconnected || !peer.open) return;
   Object.keys(FAMILY).filter((r) => r !== myRole).forEach((role) => {
+    if (presencePending[role]) return;
     const conn = peer.connect(peerId(role));
     if (!conn) return;
-    const timer = setTimeout(() => { try { conn.close(); } catch (e) {} }, 4000);
-    conn.on("open", () => {
-      clearTimeout(timer);
-      online[role] = true;
-      renderContacts();
+    const entry = { conn, unavailable: false };
+    presencePending[role] = entry;
+    const finish = () => {
+      clearTimeout(entry.timer);
+      delete presencePending[role];
       setTimeout(() => { try { conn.close(); } catch (e) {} }, 300);
-    });
+    };
+    entry.timer = setTimeout(() => {
+      if (!entry.unavailable) setOnline(role, true);
+      finish();
+    }, 3500);
+    conn.on("open", () => { setOnline(role, true); finish(); });
   });
 }
 
@@ -268,6 +283,24 @@ async function startCall(role) {
   activeCall.on("stream", (remote) => onCallConnected(role, remote));
   activeCall.on("close", () => endCall(false));
   activeCall.on("error", () => endCall(false));
+  watchIce(activeCall);
+}
+
+// Если сети не пропустили соединение — говорим об этом честно,
+// а не молчим до таймаута «не отвечает».
+function watchIce(call) {
+  const attach = () => {
+    const pc = call.peerConnection;
+    if (!pc) return false;
+    pc.addEventListener("iceconnectionstatechange", () => {
+      if (pc.iceConnectionState === "failed") {
+        endCall(true);
+        toast("Сети не пропускают прямое соединение. Скажите Егору — нужен ретранслятор.", 7000);
+      }
+    });
+    return true;
+  };
+  if (!attach()) setTimeout(attach, 1000);
 }
 
 function cancelOutgoing(showHomeToast = true) {
@@ -275,7 +308,6 @@ function cancelOutgoing(showHomeToast = true) {
   stopRinger();
   if (activeCall) { try { activeCall.close(); } catch (e) {} activeCall = null; }
   stopMedia();
-  releaseWakeLock();
   showScreen("home");
   if (showHomeToast) toast("Звонок отменён");
 }
@@ -294,6 +326,7 @@ async function answerCall() {
   call.on("stream", (remote) => onCallConnected(from, remote));
   call.on("close", () => endCall(false));
   call.on("error", () => endCall(false));
+  watchIce(call);
 }
 
 function declineCall() {
@@ -336,7 +369,6 @@ function endCall(closeConn = true) {
   $("remote-video").srcObject = null;
   $("local-video").srcObject = null;
   stopMedia();
-  releaseWakeLock();
   if (!$("screen-home").classList.contains("active")) {
     showScreen("home");
     toast("Звонок завершён");
@@ -408,9 +440,43 @@ function boot(role) {
   initPeer();
   clearInterval(presenceInt);
   presenceInt = setInterval(checkPresence, 12000);
+  // не даём экрану гаснуть: уснувший браузер = до вас не дозвониться
+  requestWakeLock();
 }
 
-function main() {
+// ---- Проверка связи (диагностика) ----
+async function runDiagnostics() {
+  const out = $("diag-results");
+  out.style.display = "block";
+  const serverOk = !!(peer && peer.open);
+  out.innerHTML =
+    `<div>${serverOk ? "🟢" : "🔴"} Сервер связи: ${serverOk ? "работает" : "НЕТ СВЯЗИ"}</div>` +
+    `<div>⏳ Прямое соединение: проверяем…</div>` +
+    `<div>⏳ Ретранслятор: проверяем…</div>`;
+
+  const res = await new Promise((resolve) => {
+    const found = { srflx: false, relay: false };
+    let pc;
+    try { pc = new RTCPeerConnection(ICE_CONFIG); } catch (e) { resolve(found); return; }
+    pc.createDataChannel("diag");
+    pc.onicecandidate = (e) => {
+      if (!e.candidate) return;
+      if (e.candidate.candidate.includes(" typ srflx ")) found.srflx = true;
+      if (e.candidate.candidate.includes(" typ relay ")) found.relay = true;
+    };
+    pc.createOffer().then((o) => pc.setLocalDescription(o));
+    setTimeout(() => { try { pc.close(); } catch (e) {} resolve(found); }, 8000);
+  });
+
+  const hasTurn = ICE_CONFIG.iceServers.some((s) => String(s.urls).includes("turn"));
+  out.innerHTML =
+    `<div>${serverOk ? "🟢" : "🔴"} Сервер связи: ${serverOk ? "работает" : "НЕТ СВЯЗИ"}</div>` +
+    `<div>${res.srflx ? "🟢" : "🔴"} Прямое соединение: ${res.srflx ? "работает" : "не работает"}</div>` +
+    `<div>${res.relay ? "🟢" : hasTurn ? "🔴" : "⚪"} Ретранслятор: ${res.relay ? "работает" : hasTurn ? "не работает" : "не настроен"}</div>`;
+}
+
+async function main() {
+  await loadTurnServers();
   // ссылка вида ?ya=mama сама настраивает телефон
   const params = new URLSearchParams(location.search);
   const fromUrl = params.get("ya");
@@ -429,10 +495,11 @@ function main() {
   $("btn-mute").onclick = toggleMute;
   $("btn-cam").onclick = toggleCam;
   $("btn-flip").onclick = flipCamera;
+  $("btn-diag").onclick = runDiagnostics;
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden && peer && peer.disconnected && !peer.destroyed) peer.reconnect();
-    if (!document.hidden && activeCall) requestWakeLock();
+    if (!document.hidden && myRole) { requestWakeLock(); checkPresence(); }
   });
 
   if ("serviceWorker" in navigator) {
