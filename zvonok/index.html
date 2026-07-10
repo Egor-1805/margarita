@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+<title>Звонок домой</title>
+<meta name="theme-color" content="#1a7f4b">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Экран выбора: кто вы -->
+<section id="screen-setup" class="screen">
+  <div class="setup-inner">
+    <div class="logo">📞</div>
+    <h1>Звонок домой</h1>
+    <p class="hint">Кто вы? Нажмите на себя один раз — приложение запомнит.</p>
+    <div id="setup-buttons"></div>
+  </div>
+</section>
+
+<!-- Главный экран -->
+<section id="screen-home" class="screen">
+  <header class="home-header">
+    <div id="me-badge"></div>
+    <div id="conn-status" class="conn-status">Подключение…</div>
+  </header>
+  <div id="contact-buttons" class="contact-list"></div>
+  <footer class="home-footer">
+    <p class="hint small">Чтобы вам могли дозвониться, приложение должно быть открыто.</p>
+  </footer>
+</section>
+
+<!-- Исходящий вызов -->
+<section id="screen-outgoing" class="screen center-screen">
+  <div class="caller-emoji" id="out-emoji">👩</div>
+  <h2 id="out-name">Мама</h2>
+  <p class="pulse">Звоним…</p>
+  <button id="btn-cancel-call" class="round-btn red big">✕<span>Отменить</span></button>
+</section>
+
+<!-- Входящий вызов -->
+<section id="screen-incoming" class="screen center-screen ringing">
+  <div class="caller-emoji" id="in-emoji">🧑</div>
+  <h2 id="in-name">Егор</h2>
+  <p class="pulse">Вам звонят!</p>
+  <div class="incoming-actions">
+    <button id="btn-decline" class="round-btn red big">✕<span>Отклонить</span></button>
+    <button id="btn-answer" class="round-btn green big shake">✓<span>Ответить</span></button>
+  </div>
+</section>
+
+<!-- Разговор -->
+<section id="screen-call" class="screen">
+  <video id="remote-video" autoplay playsinline></video>
+  <video id="local-video" autoplay playsinline muted></video>
+  <div class="call-top">
+    <span id="call-peer-name"></span>
+    <span id="call-timer">00:00</span>
+  </div>
+  <div class="call-controls">
+    <button id="btn-mute" class="round-btn dark">🎤<span>Звук</span></button>
+    <button id="btn-cam" class="round-btn dark">🎥<span>Камера</span></button>
+    <button id="btn-flip" class="round-btn dark">🔄<span>Повернуть</span></button>
+    <button id="btn-hangup" class="round-btn red">✕<span>Положить</span></button>
+  </div>
+</section>
+
+<div id="toast"></div>
+
+<script src="peerjs.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
