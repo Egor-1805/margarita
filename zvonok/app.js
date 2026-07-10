@@ -15,8 +15,8 @@ const ICE_CONFIG = {
   ],
 };
 
-// Сюда позже добавится адрес выдачи TURN-кредов (Cloudflare Worker).
-const TURN_CREDS_URL = "";
+// Worker, выдающий временные креды Cloudflare TURN (ретранслятор).
+const TURN_CREDS_URL = "https://zvonok-turn.egor-apipay.workers.dev";
 
 async function loadTurnServers() {
   if (!TURN_CREDS_URL) return;
