@@ -38,7 +38,7 @@ export function createWorld(canvas, look, handlers) {
   const AYA_SPOTS = [[6,5],[18,8],[32,12],[10,22],[38,18],[24,6],[14,28],[30,24],[8,16],[22,20]];
   const ayaIdx = Math.floor(Date.now() / 86400000) % AYA_SPOTS.length;
   const aya = { x: AYA_SPOTS[ayaIdx][0], y: AYA_SPOTS[ayaIdx][1], phase: 0,
-    pal: { skin: '#f5c6d8', hair: '#7a4520', shirt: '#ff80b3' } };
+    pal: { skin: '#fbe3c9', hair: '#14100c', shirt: '#ffb3c7' } };
 
   // сундуки
   const chests = CHEST_SPOTS.map(c => ({ ...c }));
@@ -143,7 +143,7 @@ export function createWorld(canvas, look, handlers) {
       if (d < bestD) { bestD = d; best = { type: 'monument', ref: mon, label: mon.label }; }
     }
     const da = Math.hypot(state.px - aya.x, state.py - aya.y - 0.3);
-    if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Айя' }; }
+    if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Лея' }; }
     if ((best && best.ref) !== (state.nearby && state.nearby.ref)) {
       state.nearby = best;
       handlers.onNearby && handlers.onNearby(best);
@@ -200,8 +200,8 @@ export function createWorld(canvas, look, handlers) {
       ctx.font = `bold ${fs}px sans-serif`;
       ctx.textAlign = 'center';
       const ny = ay - T * 0.72;
-      ctx.strokeStyle = '#7b3fa5'; ctx.lineWidth = 3; ctx.strokeText('Айя', ax, ny);
-      ctx.fillStyle = '#fff'; ctx.fillText('Айя', ax, ny);
+      ctx.strokeStyle = '#7b3fa5'; ctx.lineWidth = 3; ctx.strokeText('Лея', ax, ny);
+      ctx.fillStyle = '#fff'; ctx.fillText('Лея', ax, ny);
       ctx.restore();
     };
     const ents = [

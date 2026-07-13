@@ -7,6 +7,7 @@ import { CARDS_EXTRA as CARDS_EN_EXTRA } from './cards-en-extra.js';
 import { CARDS as CARDS_DE } from './cards-de.js';
 import { CARDS_DE_EXTRA_A } from './cards-de-extra-a.js';
 import { CARDS_DE_EXTRA_B } from './cards-de-extra-b.js';
+import { CARDS as CARDS_KO } from './cards-ko.js';
 import * as store from './store.js';
 import * as srs from './srs.js';
 
@@ -17,7 +18,15 @@ export function getCards() {
   const lang = store.getGame().lang || 'es';
   if (lang === 'en') return CARDS_EN;
   if (lang === 'de') return CARDS_DE_ALL;
+  if (lang === 'ko') return CARDS_KO;
   return CARDS_ES;
+}
+
+// форматы, доступные для текущего языка:
+// для корейского исключаем «напиши слово» — набирать хангыль без корейской клавиатуры нельзя
+export function activeFormats() {
+  const lang = store.getGame().lang || 'es';
+  return lang === 'ko' ? FORMATS.filter(f => f !== 'type') : FORMATS;
 }
 
 export const MAP_W = 44, MAP_H = 32;
@@ -285,6 +294,63 @@ const FILLS_DE = [
   { npcEs: 'Wie viele Tage hat eine Woche?', npcRu: 'Сколько дней в неделе?', youEs: 'Eine Woche hat ___ Tage.', youRu: 'В неделе ___ дней.', pool: 2 },
 ];
 
+const RESPONDS_KO = [
+  // Приветствия
+  { npcEs: '안녕하세요! 잘 지내세요?', npcRu: 'Здравствуйте! Как поживаете?', answer: '네, 잘 지내요. 그쪽은요?', options: ['네, 잘 지내요. 그쪽은요?', '그저 그래요. 그쪽은요?', '아주 좋아요, 감사합니다!'] },
+  { npcEs: '이름이 뭐예요?', npcRu: 'Как тебя зовут?', answer: '제 이름은 민수예요.', options: ['제 이름은 민수예요.', '이름이 좋아요.', '민수를 불러요.'] },
+  { npcEs: '어디에서 왔어요?', npcRu: 'Откуда ты?', answer: '러시아에서 왔어요.', options: ['러시아에서 왔어요.', '러시아에 가요.', '여기에서 왔어요.'] },
+  { npcEs: '정말 감사합니다!', npcRu: 'Большое спасибо!', answer: '천만에요.', options: ['천만에요.', '괜찮아요?', '부탁해요.'] },
+  { npcEs: '맛있게 드세요!', npcRu: 'Приятного аппетита!', answer: '감사합니다, 잘 먹겠습니다!', options: ['감사합니다, 잘 먹겠습니다!', '감사합니다, 잘 잤어요!', '네, 배불러요!'] },
+  { npcEs: '지금 몇 시예요?', npcRu: 'Который час?', answer: '두 시예요.', options: ['두 시예요.', '두 살이에요.', '두 개예요.'] },
+  // Покупки
+  { npcEs: '이거 얼마예요?', npcRu: 'Сколько это стоит?', answer: '만 원이에요.', options: ['만 원이에요.', '만 명이에요.', '만 시예요.'] },
+  { npcEs: '더 싼 거 있어요?', npcRu: 'Есть что-нибудь подешевле?', answer: '네, 이건 세일 중이에요.', options: ['네, 이건 세일 중이에요.', '아니요, 다 비싸요.', '네, 아주 예뻐요.'] },
+  // Погода
+  { npcEs: '오늘 정말 덥네요!', npcRu: 'Сегодня очень жарко!', answer: '네, 땀이 나요!', options: ['네, 땀이 나요!', '네, 추워요!', '네, 비가 많이 와요!'] },
+  { npcEs: '비가 올 것 같아요?', npcRu: 'Думаешь, будет дождь?', answer: '네, 구름이 어두워요.', options: ['네, 구름이 어두워요.', '네, 해가 밝아요.', '아니요, 하늘이 흐려요.'] },
+  // Еда
+  { npcEs: '뭐가 맛있어요?', npcRu: 'Что посоветуешь?', answer: '불고기가 정말 맛있어요.', options: ['불고기가 정말 맛있어요.', '불고기가 아주 차가워요.', '국이 너무 비싸요.'] },
+  { npcEs: '커피 맛있어요?', npcRu: 'Хороший кофе?', answer: '네, 방금 만들었어요.', options: ['네, 방금 만들었어요.', '네, 아주 차가워요.', '아니요, 너무 달아요.'] },
+  // Дорога
+  { npcEs: '실례합니다, 은행이 어디예요?', npcRu: 'Простите, где банк?', answer: '두 블록 더 가세요.', options: ['두 블록 더 가세요.', '아주 멀리 있어요.', '은행 안에 있어요.'] },
+  { npcEs: '근처에 약국이 있어요?', npcRu: 'Есть аптека рядом?', answer: '네, 오른쪽으로 가세요.', options: ['네, 오른쪽으로 가세요.', '네, 아주 멀어요.', '아니요, 오른쪽에 있어요.'] },
+  // Транспорт
+  { npcEs: '버스가 언제 떠나요?', npcRu: 'Когда отходит автобус?', answer: '세 시 반에 떠나요.', options: ['세 시 반에 떠나요.', '세 시 반이 좋아요.', '반 시에 떠나요.'] },
+  // Знакомство
+  { npcEs: '나이가 어떻게 되세요?', npcRu: 'Сколько тебе лет?', answer: '스물다섯 살이에요.', options: ['스물다섯 살이에요.', '스물다섯 시예요.', '스물다섯이 있어요.'] },
+  // Приглашение
+  { npcEs: '커피 한잔 할래요?', npcRu: 'Хочешь выпить кофе?', answer: '네, 좋아요!', options: ['네, 좋아요!', '네, 커피예요!', '네, 목말라요!'] },
+  // Прощание
+  { npcEs: '또 만나요!', npcRu: 'До скорого!', answer: '네, 잘 가요!', options: ['네, 잘 가요!', '네, 잘 자요!', '네, 잘 먹어요!'] },
+  // Комплимент
+  { npcEs: '옷이 정말 예뻐요!', npcRu: 'Какой красивый наряд!', answer: '정말 감사합니다!', options: ['정말 감사합니다!', '네, 예뻐요!', '천만에요!'] },
+  // Здоровье
+  { npcEs: '몸은 좀 어때요?', npcRu: 'Как ты себя чувствуешь?', answer: '머리가 조금 아파요.', options: ['머리가 조금 아파요.', '집에 있어요.', '커피가 많이 아파요.'] },
+  // Хобби
+  { npcEs: '뭐 하는 걸 좋아해요?', npcRu: 'Что тебе нравится делать?', answer: '춤추고 책 읽는 걸 좋아해요.', options: ['춤추고 책 읽는 걸 좋아해요.', '음악이 아주 많아요.', '춤추고 달리는 걸 싫어해요.'] },
+  // Работа
+  { npcEs: '무슨 일 하세요?', npcRu: 'Чем ты занимаешься?', answer: '저는 학생이에요.', options: ['저는 학생이에요.', '학생을 해요.', '학생이 있어요.'] },
+  // Семья
+  { npcEs: '형제가 있어요?', npcRu: 'Есть братья или сёстры?', answer: '네, 오빠가 한 명 있어요.', options: ['네, 오빠가 한 명 있어요.', '네, 오빠가 한 살이에요.', '네, 오빠를 몰라요.'] },
+  // Планы
+  { npcEs: '오늘 저녁에 뭐 해요?', npcRu: 'Что будешь делать сегодня вечером?', answer: '한국어를 공부할 거예요.', options: ['한국어를 공부할 거예요.', '내일 공부할 거예요.', '한국어를 만들 거예요.'] },
+  // Комплимент за язык
+  { npcEs: '한국어를 정말 잘하시네요!', npcRu: 'Ты очень хорошо говоришь по-корейски!', answer: '감사합니다, 아직 배우고 있어요.', options: ['감사합니다, 아직 배우고 있어요.', '감사합니다, 아주 잘해요.', '감사합니다, 벌써 다 배웠어요.'] },
+];
+
+const FILLS_KO = [
+  { npcEs: '오늘 뭐 먹었어요?', npcRu: 'Что ты ел(а) сегодня?', youEs: '___ 먹었어요.', youRu: 'Я ел(а) ___.', pool: 5 },
+  { npcEs: '뭐 마실래요?', npcRu: 'Что хочешь выпить?', youEs: '___ 주세요.', youRu: 'Мне ___, пожалуйста.', pool: 5 },
+  { npcEs: '기분이 어때요?', npcRu: 'Как ты себя чувствуешь?', youEs: '저는 ___.', youRu: 'Я ___.', pool: 13 },
+  { npcEs: '어디에 가요?', npcRu: 'Куда ты идёшь?', youEs: '___에 가요.', youRu: 'Я иду в ___.', pool: 6 },
+  { npcEs: '오늘 날씨가 어때요?', npcRu: 'Какая сегодня погода?', youEs: '오늘은 ___.', youRu: 'Сегодня ___.', pool: 10 },
+  { npcEs: '칭찬 한마디 해 주세요 😊', npcRu: 'Скажи мне комплимент 😊', youEs: '당신은 ___!', youRu: 'Ты ___!', pool: 12 },
+  { npcEs: '가족 중에 누가 있어요?', npcRu: 'Кто есть в твоей семье?', youEs: '___이/가 있어요.', youRu: 'У меня есть ___.', pool: 4 },
+  { npcEs: '뭘 타고 다녀요?', npcRu: 'На чём ты ездишь?', youEs: '___를 타요.', youRu: 'Я езжу на ___.', pool: 6 },
+  { npcEs: '몸 어디가 아파요?', npcRu: 'Что у тебя болит?', youEs: '___이/가 아파요.', youRu: 'У меня болит ___.', pool: 9 },
+  { npcEs: '집에 뭐가 있어요?', npcRu: 'Что есть у тебя дома?', youEs: '집에 ___이/가 있어요.', youRu: 'Дома есть ___.', pool: 8 },
+];
+
 // убрать артикль по языку
 export function bare(word, lang) {
   const l = lang || store.getGame().lang || 'es';
@@ -296,8 +362,8 @@ export function bare(word, lang) {
 // собрать случайный диалог
 export function makeDialogue() {
   const lang = store.getGame().lang || 'es';
-  const responds = lang === 'en' ? RESPONDS_EN : lang === 'de' ? RESPONDS_DE : RESPONDS_ES;
-  const fills = lang === 'en' ? FILLS_EN : lang === 'de' ? FILLS_DE : FILLS_ES;
+  const responds = lang === 'en' ? RESPONDS_EN : lang === 'de' ? RESPONDS_DE : lang === 'ko' ? RESPONDS_KO : RESPONDS_ES;
+  const fills = lang === 'en' ? FILLS_EN : lang === 'de' ? FILLS_DE : lang === 'ko' ? FILLS_KO : FILLS_ES;
   const CARDS = getCards();
 
   if (Math.random() < 0.45) {

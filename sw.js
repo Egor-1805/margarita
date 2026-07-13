@@ -1,7 +1,7 @@
 // Pueblo — service worker
 // Стратегия: stale-while-revalidate — мгновенно отдаём из кэша,
 // в фоне тянем свежую версию и обновляем кэш (обновления доходят со 2-й загрузки).
-const CACHE = 'linguenita-v21';
+const CACHE = 'linguenita-v22';
 const ASSETS = [
   './',
   './index.html',
@@ -13,6 +13,7 @@ const ASSETS = [
   './js/cards-de.js',
   './js/cards-de-extra-a.js',
   './js/cards-de-extra-b.js',
+  './js/cards-ko.js',
   './js/srs.js',
   './js/store.js',
   './js/avatar.js',

@@ -32,6 +32,13 @@ const LANG_CONFIG = {
     male: ['hans', 'stefan', 'markus', 'yannick', 'jan', 'michael', 'max', 'konrad', 'daniel'],
     preview: 'Hallo! Wie geht es Ihnen heute? Schön, Sie zu treffen.',
   },
+  ko: {
+    bcp: 'ko-KR',
+    altBcp: ['ko-', 'ko'],
+    female: ['yuna', 'sora', 'sunhi', 'sun-hi', 'seoyeon', 'jimin', 'nara', 'heami'],
+    male: ['injoon', 'minsu', 'min-su', 'hyunsu', 'gubin', 'jinho'],
+    preview: '안녕하세요! 만나서 반가워요. 오늘 기분이 어때요?',
+  },
 };
 
 // Параметры pitch/rate по полу — разница очень заметная

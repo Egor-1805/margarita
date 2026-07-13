@@ -3,7 +3,7 @@
 // ============================================================
 import * as store from './store.js';
 import { createWorld } from './world.js';
-import { LOCATIONS, FORMATS, pickWords, isNew, makeDialogue } from './locations.js';
+import { LOCATIONS, FORMATS, activeFormats, pickWords, isNew, makeDialogue } from './locations.js';
 import { runIntro, runGame, runDialogue } from './minigames.js';
 import { avatarSVG, COSMETICS, UPGRADES } from './avatar.js';
 
@@ -11,6 +11,7 @@ const LANG_OPTIONS = [
   { code: 'es', flag: '🇪🇸', name: 'Испанский', sub: 'español' },
   { code: 'en', flag: '🇺🇸', name: 'Английский', sub: 'English (American)' },
   { code: 'de', flag: '🇩🇪', name: 'Немецкий', sub: 'Deutsch' },
+  { code: 'ko', flag: '🇰🇷', name: 'Корейский', sub: '한국어' },
 ];
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -53,9 +54,10 @@ async function enterLocation(loc) {
     if (!cards.length) { toast('Здесь сейчас нечего повторять 👌'); return; }
     const fresh = cards.filter(isNew);
     if (fresh.length) await runIntro(fresh);
-    const idx = (gameRotation[loc.id] || 0) % loc.games.length;
+    const games = activeFormats();
+    const idx = (gameRotation[loc.id] || 0) % games.length;
     gameRotation[loc.id] = idx + 1;
-    const res = await runGame(loc.games[idx], cards);
+    const res = await runGame(games[idx], cards);
     store.markStudied(); hud();
     summary(loc, res);
   } finally { world.resume(); }
@@ -67,7 +69,7 @@ async function talkNPC(npc) {
     const dlg = makeDialogue();
     const res = await runDialogue(dlg);
     store.markStudied(); hud();
-    const BIEN = { es: '¡Bien!', en: 'Well done!', de: 'Gut!' };
+    const BIEN = { es: '¡Bien!', en: 'Well done!', de: 'Gut!', ko: '잘했어요!' };
     if (res.coins) toast(`${res.correct ? '✓ ' + (BIEN[store.getGame().lang] || '✓') : 'Почти!'} +${res.coins} 🪙`);
   } finally { world.resume(); }
 }
@@ -90,7 +92,8 @@ async function openChest(chest) {
       return;
     }
     const loc = LOCATIONS[(Math.random() * LOCATIONS.length) | 0];
-    const fmt = FORMATS[(Math.random() * FORMATS.length) | 0];
+    const fmts = activeFormats();
+    const fmt = fmts[(Math.random() * fmts.length) | 0];
     const cards = pickWords(loc.themes, 5);
     if (!cards.length) { toast('Сундук пока пуст 🙂'); return; }
     toast(`🎁 Сундук: ${loc.name}`);
@@ -317,7 +320,7 @@ function showGenderPicker() {
 const TUTORIAL_STEPS = [
   {
     emoji: '👋',
-    text: 'Привет! Я — Айя, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
+    text: 'Привет! Я — Лея, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
   },
   {
     emoji: '🏛️',
@@ -351,46 +354,48 @@ function runTutorial() {
     let step = 0;
 
     const ayaSVG = `<svg viewBox="0 0 80 98" width="80" height="98" xmlns="http://www.w3.org/2000/svg">
-      <!-- платье принцессы -->
-      <rect x="22" y="66" width="36" height="30" rx="8" fill="#ff80b3"/>
-      <path d="M22 96 Q40 86 58 96 L58 90 Q40 80 22 90 Z" fill="#ffd700" opacity="0.85"/>
+      <!-- длинные прямые волосы (за спиной) -->
+      <path d="M20 38 Q18 70 21 92 L31 92 Q27 66 27 46 Z" fill="#14100c"/>
+      <path d="M60 38 Q62 70 59 92 L49 92 Q53 66 53 46 Z" fill="#14100c"/>
+      <ellipse cx="40" cy="40" rx="21" ry="17" fill="#14100c"/>
+      <!-- блузка -->
+      <rect x="23" y="67" width="34" height="29" rx="8" fill="#ffb3c7"/>
+      <path d="M33 67 L40 74 L47 67" stroke="#fff" stroke-width="2" fill="none" stroke-linecap="round"/>
       <!-- шея -->
-      <ellipse cx="40" cy="66" rx="7" ry="5" fill="#fde0c2"/>
-      <!-- волосы задние -->
-      <ellipse cx="40" cy="40" rx="22" ry="18" fill="#1a1410"/>
-      <rect x="17" y="38" width="8" height="24" rx="4" fill="#1a1410"/>
-      <rect x="55" y="38" width="8" height="24" rx="4" fill="#1a1410"/>
+      <ellipse cx="40" cy="66" rx="6.5" ry="5" fill="#fbe3c9"/>
       <!-- голова -->
-      <ellipse cx="40" cy="50" rx="18" ry="19" fill="#fde0c2"/>
-      <!-- волосы верх (прямая чёлка) -->
-      <path d="M18 38 Q40 18 62 38 Q60 30 40 27 Q20 30 18 38 Z" fill="#1a1410"/>
-      <!-- корона -->
-      <path d="M22 30 L26 14 L33 24 L40 10 L47 24 L54 14 L58 30 Z" fill="#ffd700" stroke="#e0a800" stroke-width="1"/>
-      <circle cx="40" cy="16" r="2.2" fill="#ff5fa0"/>
-      <circle cx="28" cy="22" r="1.6" fill="#5fc8ff"/>
-      <circle cx="52" cy="22" r="1.6" fill="#5fc8ff"/>
-      <rect x="21" y="29" width="38" height="4" rx="1.5" fill="#ffd700" stroke="#e0a800" stroke-width="0.8"/>
-      <!-- брови -->
-      <path d="M28 45 Q32 43 36 45" stroke="#1a1410" stroke-width="1.4" fill="none" stroke-linecap="round"/>
-      <path d="M44 45 Q48 43 52 45" stroke="#1a1410" stroke-width="1.4" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="50" rx="17.5" ry="18.5" fill="#fbe3c9"/>
+      <!-- прямая чёлка -->
+      <path d="M21 44 Q22 24 40 23 Q58 24 59 44 L59 40 Q58 36 54 39 L50 42 Q48 37 44 40 Q42 42 40 41 Q36 37 32 41 L28 42 Q24 36 21 40 Z" fill="#14100c"/>
+      <!-- пряди у лица -->
+      <path d="M21 40 Q20 52 23 60 Q25 50 24 42 Z" fill="#14100c"/>
+      <path d="M59 40 Q60 52 57 60 Q55 50 56 42 Z" fill="#14100c"/>
+      <!-- заколка -->
+      <rect x="50" y="35" width="9" height="3" rx="1.5" fill="#ff5fa0" transform="rotate(18 54 36)"/>
+      <!-- брови (прямые) -->
+      <path d="M28 45.5 L36 45" stroke="#14100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+      <path d="M44 45 L52 45.5" stroke="#14100c" stroke-width="1.5" fill="none" stroke-linecap="round"/>
       <!-- глаза (миндалевидные) -->
-      <path d="M27 49 Q32.5 45.5 38 49 Q32.5 52.5 27 49 Z" fill="white"/>
-      <path d="M42 49 Q47.5 45.5 53 49 Q47.5 52.5 42 49 Z" fill="white"/>
-      <circle cx="33.5" cy="49" r="2.6" fill="#3a2a1a"/>
-      <circle cx="46.5" cy="49" r="2.6" fill="#3a2a1a"/>
-      <circle cx="34.3" cy="48" r="0.9" fill="white"/>
-      <circle cx="47.3" cy="48" r="0.9" fill="white"/>
+      <path d="M27 50 Q32.5 46.5 38 50 Q32.5 53 27 50 Z" fill="white"/>
+      <path d="M42 50 Q47.5 46.5 53 50 Q47.5 53 42 50 Z" fill="white"/>
+      <circle cx="33" cy="49.8" r="2.5" fill="#241812"/>
+      <circle cx="47" cy="49.8" r="2.5" fill="#241812"/>
+      <circle cx="33.8" cy="48.9" r="0.9" fill="white"/>
+      <circle cx="47.8" cy="48.9" r="0.9" fill="white"/>
+      <!-- верхнее веко -->
+      <path d="M27.5 49 Q32.5 45.8 37.5 49" stroke="#14100c" stroke-width="1.1" fill="none" stroke-linecap="round"/>
+      <path d="M42.5 49 Q47.5 45.8 52.5 49" stroke="#14100c" stroke-width="1.1" fill="none" stroke-linecap="round"/>
       <!-- нос -->
-      <path d="M40 53 Q41 56 40 57.5" stroke="#e0a888" stroke-width="1" fill="none" stroke-linecap="round"/>
+      <path d="M40 53 Q41 56 40 57.5" stroke="#dcae86" stroke-width="1" fill="none" stroke-linecap="round"/>
       <!-- губы -->
-      <ellipse cx="40" cy="61.5" rx="5" ry="2" fill="#e8889c"/>
-      <path d="M35 61.5 Q40 64.5 45 61.5" stroke="#c05a72" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+      <ellipse cx="40" cy="61.5" rx="4.6" ry="1.9" fill="#e8788e"/>
+      <path d="M35.5 61.5 Q40 64.3 44.5 61.5" stroke="#c05a72" stroke-width="0.8" fill="none" stroke-linecap="round"/>
       <!-- румянец -->
-      <ellipse cx="26" cy="55" rx="3.6" ry="2.2" fill="rgba(255,140,150,0.35)"/>
-      <ellipse cx="54" cy="55" rx="3.6" ry="2.2" fill="rgba(255,140,150,0.35)"/>
+      <ellipse cx="27" cy="55.5" rx="3.4" ry="2" fill="rgba(255,150,160,0.3)"/>
+      <ellipse cx="53" cy="55.5" rx="3.4" ry="2" fill="rgba(255,150,160,0.3)"/>
       <!-- серьги -->
-      <circle cx="22" cy="58" r="1.4" fill="#ffd700"/>
-      <circle cx="58" cy="58" r="1.4" fill="#ffd700"/>
+      <circle cx="23.5" cy="59" r="1.2" fill="#ffd700"/>
+      <circle cx="56.5" cy="59" r="1.2" fill="#ffd700"/>
     </svg>`;
 
     const highlights = {
@@ -408,7 +413,7 @@ function runTutorial() {
 
       ov.querySelector('.tut-inner').innerHTML = `
         <div class="tut-aya">${ayaSVG}</div>
-        <div class="tut-name">Айя</div>
+        <div class="tut-name">Лея</div>
         <div class="tut-bubble">
           <div class="tut-emoji">${s.emoji}</div>
           <p class="tut-text">${s.text}</p>
@@ -450,14 +455,14 @@ async function talkAya() {
     const g = store.getGame();
     const dayKey = store.todayKey();
     if (g.ayaGiftDay === dayKey) {
-      toast('🌸 Айя улыбается, но бонус уже дала сегодня!');
+      toast('🌸 Лея улыбается, но бонус уже дала сегодня!');
       return;
     }
     await new Promise((resolve) => {
       const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:2rem 1.5rem">
         <div style="font-size:3.5rem;margin-bottom:.5rem">🌸</div>
-        <h2 style="margin:.25rem 0;font-size:1.4rem">Айя</h2>
-        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Бонус от милашки!</div>
+        <h2 style="margin:.25rem 0;font-size:1.4rem">Лея</h2>
+        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Подарок от Леи!</div>
         <div style="font-size:2.5rem;font-weight:700;color:#e6b800">🪙 +50</div>
         <button class="mg-btn" id="ayaOk" style="margin-top:1.5rem">Спасибо! 😊</button>
       </div></div></div>`);
@@ -467,7 +472,7 @@ async function talkAya() {
     g.ayaGiftDay = dayKey;
     store.addRewards(50, 0);
     store.save(); hud();
-    toast('🌸 +50 🪙 от Айи!');
+    toast('🌸 +50 🪙 от Леи!');
   } finally { world.resume(); }
 }
 
