@@ -3,7 +3,9 @@
 // ============================================================
 import * as store from './store.js';
 import { createWorld } from './world.js';
-import { LOCATIONS, FORMATS, activeFormats, pickWords, isNew, makeDialogue } from './locations.js';
+import { LOCATIONS, FORMATS, activeFormats, pickWords, isNew, makeDialogue, getCards } from './locations.js';
+import * as srs from './srs.js';
+import { speak } from './audio.js';
 import { runIntro, runGame, runDialogue } from './minigames.js';
 import { avatarSVG, COSMETICS, UPGRADES } from './avatar.js';
 
@@ -12,6 +14,7 @@ const LANG_OPTIONS = [
   { code: 'en', flag: '🇺🇸', name: 'Английский', sub: 'English (American)' },
   { code: 'de', flag: '🇩🇪', name: 'Немецкий', sub: 'Deutsch' },
   { code: 'ko', flag: '🇰🇷', name: 'Корейский', sub: '한국어' },
+  { code: 'zh', flag: '🇨🇳', name: 'Китайский', sub: '中文 (упрощённый)' },
 ];
 
 const $ = (s, r = document) => r.querySelector(s);
@@ -54,7 +57,7 @@ async function enterLocation(loc) {
     if (!cards.length) { toast('Здесь сейчас нечего повторять 👌'); return; }
     const fresh = cards.filter(isNew);
     if (fresh.length) await runIntro(fresh);
-    const games = activeFormats();
+    const games = loc.easy || activeFormats();
     const idx = (gameRotation[loc.id] || 0) % games.length;
     gameRotation[loc.id] = idx + 1;
     const res = await runGame(games[idx], cards);
@@ -69,7 +72,7 @@ async function talkNPC(npc) {
     const dlg = makeDialogue();
     const res = await runDialogue(dlg);
     store.markStudied(); hud();
-    const BIEN = { es: '¡Bien!', en: 'Well done!', de: 'Gut!', ko: '잘했어요!' };
+    const BIEN = { es: '¡Bien!', en: 'Well done!', de: 'Gut!', ko: '잘했어요!', zh: '很好！' };
     if (res.coins) toast(`${res.correct ? '✓ ' + (BIEN[store.getGame().lang] || '✓') : 'Почти!'} +${res.coins} 🪙`);
   } finally { world.resume(); }
 }
@@ -476,6 +479,172 @@ async function talkAya() {
   } finally { world.resume(); }
 }
 
+// ---------- Ежедневная тренировка (деревянная табличка) ----------
+const DAILY_N = 20;
+const dShuffle = (a) => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+
+function pickDailyWords(n) {
+  const CARDS = getCards();
+  const now = Date.now();
+  const fresh = [], due = [], rest = [];
+  for (const c of CARDS) {
+    const st = store.getCardState(c.id);
+    if (!st.seen) fresh.push(c);
+    else if (st.due <= now) due.push(c);
+    else rest.push(c);
+  }
+  const pick = dShuffle(fresh).slice(0, n);
+  for (const c of dShuffle(due)) { if (pick.length >= n) break; pick.push(c); }
+  for (const c of dShuffle(rest)) { if (pick.length >= n) break; pick.push(c); }
+  return pick;
+}
+
+function isDailyDone() { return store.getGame().dailyDone === store.todayKey(); }
+
+async function runDaily() {
+  world.pause(); $('#actionBtn').classList.add('hidden');
+  try {
+    const g = store.getGame();
+    const today = store.todayKey();
+    // набор слов дня фиксируется на день и на язык
+    if (!g.daily || g.daily.day !== today || g.daily.lang !== g.lang) {
+      g.daily = { day: today, lang: g.lang, ids: pickDailyWords(DAILY_N).map(c => c.id) };
+      store.save();
+    }
+    const CARDS = getCards();
+    const words = g.daily.ids.map(id => CARDS.find(c => c.id === id)).filter(Boolean);
+    if (words.length < 4) { toast('Пока мало слов — загляни завтра 👌'); return; }
+    const repeat = isDailyDone();
+    if (!(await dailyIntro(words.length, repeat))) return;
+    if (!(await dailyFlashcards(words))) return;
+    for (let round = 1; round <= 3; round++) {
+      if (!(await dailyQuizRound(words, round))) return;
+    }
+    if (!repeat) {
+      // отметить слова в SRS как изученные (без дневного лимита новых)
+      const now = Date.now();
+      for (const c of words) {
+        const st = store.getCardState(c.id);
+        if (!st.seen) { const { st: ns } = srs.grade(st, 'good', now); store.setCardState(c.id, ns); }
+      }
+      g.dailyDone = today;
+      store.addRewards(80, 50);
+      store.markStudied(); store.save(); hud();
+    }
+    await dailyFinish(repeat);
+  } finally { world.resume(); }
+}
+
+function dailyIntro(n, repeat) {
+  return new Promise((resolve) => {
+    const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:1.8rem 1.4rem">
+      <div style="font-size:3rem">🪧</div>
+      <h2 style="margin:.4rem 0">Ежедневные слова</h2>
+      <p style="color:var(--c-text);margin:.6rem 0 1rem">${repeat
+        ? 'Сегодня уже пройдено ✅ Можно повторить ещё раз — награды не будет, но памяти полезно!'
+        : `${n} слов на сегодня. Сначала карточки: смотри и переворачивай. Потом 3 круга закрепления — пока всё не запомнишь. Награда: +80 🪙 +50 ⭐`}</p>
+      <button class="mg-btn" id="dGo">${repeat ? 'Повторить' : 'Начать!'}</button>
+      <button class="mg-btn ghost" id="dLater" style="margin-top:.5rem">Позже</button>
+    </div></div></div>`);
+    document.body.appendChild(ov);
+    ov.querySelector('#dGo').onclick = () => { ov.remove(); resolve(true); };
+    ov.querySelector('#dLater').onclick = () => { ov.remove(); resolve(false); };
+  });
+}
+
+// Фаза 1: карточки — русское слово, тап → перевод
+function dailyFlashcards(words) {
+  return new Promise((resolve) => {
+    let i = 0, flipped = false;
+    const ov = el(`<div class="mg-overlay"><div class="mg-card">
+      <div class="mg-top"><button class="mg-x">✕</button><div class="mg-title">Карточки</div><div class="mg-prog"></div></div>
+      <div class="mg-body"></div></div></div>`);
+    document.body.appendChild(ov);
+    ov.querySelector('.mg-x').onclick = () => { ov.remove(); resolve(false); };
+    const body = ov.querySelector('.mg-body');
+    const render = () => {
+      const c = words[i];
+      ov.querySelector('.mg-prog').textContent = `${i + 1}/${words.length}`;
+      body.replaceChildren(el(`<div class="mg-intro" style="text-align:center">
+        <div id="dCard" style="cursor:pointer;border:2px solid var(--c-line,#e5d9c5);border-radius:16px;padding:1.6rem 1rem;margin:.4rem 0;min-height:9.5rem;display:flex;flex-direction:column;justify-content:center;gap:.4rem">
+          ${flipped
+            ? `<div class="mg-es" style="font-size:1.6rem">${c.es} <button class="mg-speak" id="dSay">🔊</button></div>
+               <div class="mg-emoji" style="font-size:2rem">${c.emoji}</div>
+               <div class="mg-ex" style="font-size:.9rem"><span>${c.exEs}</span><br><em>${c.exRu}</em></div>`
+            : `<div class="mg-ru" style="font-size:1.5rem;font-weight:700">${c.ru}</div>
+               <div class="mg-emoji" style="font-size:2rem">${c.emoji}</div>
+               <div style="color:var(--c-muted,#999);font-size:.85rem">Нажми на карточку — увидишь перевод</div>`}
+        </div>
+        ${flipped ? `<button class="mg-btn" id="dNext">${i < words.length - 1 ? 'Дальше →' : 'К закреплению!'}</button>` : ''}
+      </div>`));
+      const card = body.querySelector('#dCard');
+      if (!flipped) card.onclick = () => { flipped = true; render(); speak(words[i].es); };
+      else {
+        const say = body.querySelector('#dSay'); if (say) say.onclick = (e) => { e.stopPropagation(); speak(c.es); };
+        card.onclick = null;
+        body.querySelector('#dNext').onclick = () => {
+          i++; flipped = false;
+          if (i < words.length) render();
+          else { ov.remove(); resolve(true); }
+        };
+      }
+    };
+    render();
+  });
+}
+
+// Фазы 2-4: круг закрепления — слово на изучаемом языке + 3 русских варианта.
+// Ошибся — слово вернётся в конец круга, пока не ответишь верно.
+function dailyQuizRound(words, round) {
+  return new Promise((resolve) => {
+    let queue = dShuffle(words);
+    let total = queue.length, done = 0;
+    const ov = el(`<div class="mg-overlay"><div class="mg-card">
+      <div class="mg-top"><button class="mg-x">✕</button><div class="mg-title">Круг ${round}/3</div><div class="mg-prog"></div></div>
+      <div class="mg-body"></div></div></div>`);
+    document.body.appendChild(ov);
+    ov.querySelector('.mg-x').onclick = () => { ov.remove(); resolve(false); };
+    const body = ov.querySelector('.mg-body');
+    const step = () => {
+      if (!queue.length) { ov.remove(); return resolve(true); }
+      const c = queue[0];
+      ov.querySelector('.mg-prog').textContent = `${done}/${total}`;
+      const distr = dShuffle(words.filter(w => w !== c && w.ru !== c.ru)).slice(0, 2).map(w => w.ru);
+      const opts = dShuffle([c.ru, ...distr]);
+      body.replaceChildren(el(`<div class="mg-quiz">
+        <div class="mg-es" style="font-size:1.5rem;text-align:center">${c.es} <button class="mg-speak" id="dSay">🔊</button></div>
+        <div class="mg-q">Что это значит?</div>
+        <div class="mg-opts">${opts.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${o}</button>`).join('')}</div>
+      </div>`));
+      body.querySelector('#dSay').onclick = () => speak(c.es);
+      speak(c.es);
+      body.querySelectorAll('.mg-opt').forEach(b => b.onclick = () => {
+        const ok = decodeURIComponent(b.dataset.v) === c.ru;
+        body.querySelectorAll('.mg-opt').forEach(x => { x.disabled = true; if (decodeURIComponent(x.dataset.v) === c.ru) x.classList.add('right'); });
+        if (!ok) b.classList.add('wrong');
+        queue.shift();
+        if (ok) done++;
+        else queue.push(c); // не запомнил — вернётся в конце круга
+        setTimeout(step, ok ? 550 : 1100);
+      });
+    };
+    step();
+  });
+}
+
+function dailyFinish(repeat) {
+  return new Promise((resolve) => {
+    const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:1.8rem 1.4rem">
+      <div style="font-size:3rem">🎉</div>
+      <h2 style="margin:.4rem 0">${repeat ? 'Отличное повторение!' : 'Все 3 круга пройдены!'}</h2>
+      <p style="color:var(--c-text)">${repeat ? 'Слова закрепились ещё лучше.' : 'Награда: <b>+80 🪙 +50 ⭐</b><br>Приходи завтра за новыми словами!'}</p>
+      <button class="mg-btn" id="dOk">Ура!</button>
+    </div></div></div>`);
+    document.body.appendChild(ov);
+    ov.querySelector('#dOk').onclick = () => { ov.remove(); resolve(); };
+  });
+}
+
 // ---------- памятники / декорации ----------
 async function talkMonument(mon) {
   world.pause(); $('#actionBtn').classList.add('hidden');
@@ -588,12 +757,12 @@ function init() {
   const used = store.checkStreakBreak(); store.save();
   hud();
   world = createWorld($('#game'), store.getGame().avatar, {
-    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen, onAya: talkAya, onMonument: talkMonument,
+    onNearby: showAction, onEnter: enterLocation, onTalk: talkNPC, onChest: openChest, isChestOpen, onAya: talkAya, onMonument: talkMonument, onDaily: runDaily, isDailyDone,
   });
   world.attachJoystick($('#joystick'), $('#joynub'));
   $('#actionBtn').onclick = () => world.interact();
   if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
-    window.__dev = { enterLocation, talkNPC, openChest, LOCATIONS, world };
+    window.__dev = { enterLocation, talkNPC, openChest, LOCATIONS, world, runDaily };
   }
   if (!store.getGame().lang) showLangPicker();
   else if (!store.getGame().pickedGender) showGenderPicker();

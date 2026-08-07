@@ -8,25 +8,33 @@ import { CARDS as CARDS_DE } from './cards-de.js';
 import { CARDS_DE_EXTRA_A } from './cards-de-extra-a.js';
 import { CARDS_DE_EXTRA_B } from './cards-de-extra-b.js';
 import { CARDS as CARDS_KO } from './cards-ko.js';
+import { CARDS as CARDS_ZH } from './cards-zh.js';
+import { BASICS } from './cards-basics.js';
 import * as store from './store.js';
 import * as srs from './srs.js';
 
 const CARDS_EN = [...CARDS_EN_BASE, ...CARDS_EN_EXTRA];
 const CARDS_DE_ALL = [...CARDS_DE, ...CARDS_DE_EXTRA_A, ...CARDS_DE_EXTRA_B];
 
+// полные колоды: основная + «азы» (регион 14, здание Ясли)
+const DECKS = {
+  es: [...CARDS_ES, ...BASICS.es],
+  en: [...CARDS_EN, ...BASICS.en],
+  de: [...CARDS_DE_ALL, ...BASICS.de],
+  ko: [...CARDS_KO, ...BASICS.ko],
+  zh: [...CARDS_ZH, ...BASICS.zh],
+};
+
 export function getCards() {
   const lang = store.getGame().lang || 'es';
-  if (lang === 'en') return CARDS_EN;
-  if (lang === 'de') return CARDS_DE_ALL;
-  if (lang === 'ko') return CARDS_KO;
-  return CARDS_ES;
+  return DECKS[lang] || DECKS.es;
 }
 
-// форматы, доступные для текущего языка:
-// для корейского исключаем «напиши слово» — набирать хангыль без корейской клавиатуры нельзя
+// форматы, доступные для текущего языка: для корейского и китайского исключаем
+// «напиши слово» — набирать хангыль/иероглифы без нужной клавиатуры нельзя
 export function activeFormats() {
   const lang = store.getGame().lang || 'es';
-  return lang === 'ko' ? FORMATS.filter(f => f !== 'type') : FORMATS;
+  return (lang === 'ko' || lang === 'zh') ? FORMATS.filter(f => f !== 'type') : FORMATS;
 }
 
 export const MAP_W = 44, MAP_H = 32;
@@ -37,6 +45,8 @@ export const FORMATS = ['match', 'complete', 'memory', 'translate', 'picture', '
 
 // Здания. tx,ty — левый-верхний угол (тайлы), w,h — размер. themes — регионы слов.
 export const LOCATIONS = [
+  // Ясли — самые азы для новичков с нуля (регион 14), только лёгкие форматы на узнавание
+  { id: 'nursery',  name: 'Ясли',           es: 'Guardería',        emoji: '🍼', color: '#f2a0bd', tx: 26, ty: 11, w: 5, h: 4, themes: [14], easy: ['picture', 'match', 'listen', 'memory'] },
   { id: 'salon',    name: 'Салон красоты',  es: 'Salón de Belleza', emoji: '💄', color: '#e07aa8', tx: 3,  ty: 3,  w: 5, h: 4, themes: [12] },
   { id: 'cafe',     name: 'Кафе',           es: 'Café',             emoji: '☕', color: '#e76f51', tx: 13, ty: 3,  w: 5, h: 4, themes: [5] },
   { id: 'teatro',   name: 'Театр',          es: 'Teatro',           emoji: '🎭', color: '#9a5ea7', tx: 20, ty: 3,  w: 5, h: 4, themes: [1, 11] },
@@ -167,17 +177,16 @@ const RESPONDS_ES = [
   { npcEs: '¡Hablas muy bien español!', npcRu: 'Ты очень хорошо говоришь по-испански!', answer: 'Gracias, estoy aprendiendo.', options: ['Gracias, estoy aprendiendo.', 'Gracias, hablo muy bien.', 'Gracias, sigo practicando.'] },
 ];
 
+// В каждом fill-шаблоне words — явный список подходящих по смыслу слов из колоды
+// (совпадают с полем es карточки). Дистракторы берутся только из этого же списка.
 const FILLS_ES = [
-  { npcEs: '¿Qué comiste hoy?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Comí ___.', youRu: 'Я ел(а) ___.', pool: 5 },
-  { npcEs: '¿Qué quieres beber?', npcRu: 'Что хочешь выпить?', youEs: 'Quiero ___.', youRu: 'Я хочу ___.', pool: 5 },
-  { npcEs: '¿De qué color es tu ropa?', npcRu: 'Какого цвета твоя одежда?', youEs: 'Es ___.', youRu: 'Она ___.', pool: 7 },
-  { npcEs: '¿Cómo te sientes?', npcRu: 'Как ты себя чувствуешь?', youEs: 'Me siento ___.', youRu: 'Я чувствую себя ___.', pool: 9 },
-  { npcEs: '¿Adónde vas?', npcRu: 'Куда ты идёшь?', youEs: 'Voy al ___.', youRu: 'Я иду в ___.', pool: 6 },
-  { npcEs: '¿Qué tiempo hace?', npcRu: 'Какая погода?', youEs: 'Hoy ___.', youRu: 'Сегодня ___.', pool: 10 },
-  { npcEs: 'Dime un piropo 😊', npcRu: 'Скажи мне комплимент 😊', youEs: '¡Eres ___!', youRu: 'Ты ___!', pool: 13 },
-  { npcEs: '¿Cómo se llama tu madre?', npcRu: 'Как зовут твою маму?', youEs: 'Mi madre se llama ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
-  { npcEs: '¿Cómo prefieres viajar?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Prefiero ir en ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
-  { npcEs: '¿Cuántos días tiene una semana?', npcRu: 'Сколько дней в неделе?', youEs: 'Una semana tiene ___ días.', youRu: 'В неделе ___ дней.', pool: 2 },
+  { npcEs: '¿Qué comiste hoy?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Comí ___.', youRu: 'Я ел(а) ___.', words: ['el pan', 'el queso', 'el pollo', 'el pescado', 'la carne', 'el huevo', 'la manzana', 'el plátano'] },
+  { npcEs: '¿Qué quieres beber?', npcRu: 'Что хочешь выпить?', youEs: 'Quiero ___.', youRu: 'Я хочу ___.', words: ['el agua', 'el café', 'el té', 'la leche', 'el zumo'] },
+  { npcEs: '¿Adónde vas?', npcRu: 'Куда ты идёшь?', youEs: 'Voy al ___.', youRu: 'Я иду в ___.', words: ['el parque', 'el banco', 'el hospital', 'el mercado', 'el museo', 'el cine', 'el supermercado'] },
+  { npcEs: '¿Cómo prefieres viajar?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Prefiero ir en ___.', youRu: 'Я предпочитаю ехать на ___.', words: ['el coche', 'el autobús', 'el tren', 'el metro', 'el taxi', 'el avión', 'la bicicleta'] },
+  { npcEs: '¿Qué tiempo hace?', npcRu: 'Какая погода?', youEs: 'Hoy ___.', youRu: 'Сегодня ___.', words: ['hace sol', 'hace calor', 'hace frío', 'hace viento', 'llueve', 'nieva'] },
+  { npcEs: '¿Quién te espera en casa?', npcRu: 'Кто ждёт тебя дома?', youEs: 'Me espera mi ___.', youRu: 'Меня ждёт ___.', words: ['mamá', 'papá', 'el hermano', 'la hermana', 'el abuelo', 'la abuela'] },
+  { npcEs: '¿Cuál es tu estación favorita?', npcRu: 'Какое твоё любимое время года?', youEs: 'Mi estación favorita es ___.', youRu: 'Моё любимое время года — ___.', words: ['la primavera', 'el verano', 'el otoño', 'el invierno'] },
 ];
 
 const RESPONDS_EN = [
@@ -225,16 +234,13 @@ const RESPONDS_EN = [
 ];
 
 const FILLS_EN = [
-  { npcEs: 'What did you eat today?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'I ate ___.', youRu: 'Я ел(а) ___.', pool: 5 },
-  { npcEs: 'What do you want to drink?', npcRu: 'Что хочешь выпить?', youEs: 'I want ___.', youRu: 'Я хочу ___.', pool: 5 },
-  { npcEs: 'What colour is your outfit?', npcRu: 'Какого цвета твой наряд?', youEs: "It's ___.", youRu: 'Он ___.', pool: 7 },
-  { npcEs: 'How do you feel?', npcRu: 'Как ты себя чувствуешь?', youEs: 'I feel ___.', youRu: 'Я чувствую себя ___.', pool: 9 },
-  { npcEs: 'Where are you going?', npcRu: 'Куда ты идёшь?', youEs: "I'm going to the ___.", youRu: 'Я иду в ___.', pool: 6 },
-  { npcEs: "What's the weather like?", npcRu: 'Какая погода?', youEs: 'Today it is ___.', youRu: 'Сегодня ___.', pool: 10 },
-  { npcEs: 'Say something nice 😊', npcRu: 'Скажи что-нибудь приятное 😊', youEs: 'You are ___!', youRu: 'Ты ___!', pool: 13 },
-  { npcEs: "What's your mother's name?", npcRu: 'Как зовут твою маму?', youEs: 'My mother is called ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
-  { npcEs: 'How do you prefer to travel?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'I prefer to go by ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
-  { npcEs: 'How many days are in a week?', npcRu: 'Сколько дней в неделе?', youEs: 'A week has ___ days.', youRu: 'В неделе ___ дней.', pool: 2 },
+  { npcEs: 'What did you eat today?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'I ate ___.', youRu: 'Я ел(а) ___.', words: ['bread', 'cheese', 'chicken', 'fish', 'meat', 'rice', 'soup', 'pizza', 'salad'] },
+  { npcEs: 'What do you want to drink?', npcRu: 'Что хочешь выпить?', youEs: 'I want ___.', youRu: 'Я хочу ___.', words: ['water', 'coffee', 'tea', 'juice', 'milk'] },
+  { npcEs: 'Where are you going?', npcRu: 'Куда ты идёшь?', youEs: "I'm going to the ___.", youRu: 'Я иду в ___.', words: ['park', 'bank', 'hospital', 'school', 'pharmacy', 'restaurant', 'hotel'] },
+  { npcEs: 'How do you prefer to travel?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'I prefer to go by ___.', youRu: 'Я предпочитаю ехать на ___.', words: ['bus', 'car', 'subway', 'taxi', 'train', 'plane', 'bicycle'] },
+  { npcEs: "What's the weather like?", npcRu: 'Какая погода?', youEs: 'Today it is ___.', youRu: 'Сегодня ___.', words: ['hot', 'cold', 'warm'] },
+  { npcEs: 'Who is waiting for you at home?', npcRu: 'Кто ждёт тебя дома?', youEs: 'My ___ is waiting for me.', youRu: 'Меня ждёт ___.', words: ['mother', 'father', 'brother', 'sister', 'grandmother', 'grandfather'] },
+  { npcEs: 'What is your favourite season?', npcRu: 'Какое твоё любимое время года?', youEs: 'My favourite season is ___.', youRu: 'Моё любимое время года — ___.', words: ['spring', 'summer', 'winter'] },
 ];
 
 const RESPONDS_DE = [
@@ -282,16 +288,13 @@ const RESPONDS_DE = [
 ];
 
 const FILLS_DE = [
-  { npcEs: 'Was hast du heute gegessen?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Ich habe ___ gegessen.', youRu: 'Я ел(а) ___.', pool: 5 },
-  { npcEs: 'Was möchtest du trinken?', npcRu: 'Что хочешь выпить?', youEs: 'Ich möchte ___.', youRu: 'Я хочу ___.', pool: 5 },
-  { npcEs: 'Welche Farbe hat deine Kleidung?', npcRu: 'Какого цвета твоя одежда?', youEs: 'Sie ist ___.', youRu: 'Она ___.', pool: 7 },
-  { npcEs: 'Wie fühlst du dich?', npcRu: 'Как ты себя чувствуешь?', youEs: 'Ich fühle mich ___.', youRu: 'Я чувствую себя ___.', pool: 9 },
-  { npcEs: 'Wohin gehst du?', npcRu: 'Куда ты идёшь?', youEs: 'Ich gehe zum ___.', youRu: 'Я иду в ___.', pool: 6 },
-  { npcEs: 'Wie ist das Wetter?', npcRu: 'Какая погода?', youEs: 'Heute ist es ___.', youRu: 'Сегодня ___.', pool: 10 },
-  { npcEs: 'Sag etwas Nettes 😊', npcRu: 'Скажи что-нибудь приятное 😊', youEs: 'Du bist ___!', youRu: 'Ты ___!', pool: 13 },
-  { npcEs: 'Wie heißt deine Mutter?', npcRu: 'Как зовут твою маму?', youEs: 'Meine Mutter heißt ___.', youRu: 'Мою маму зовут ___.', pool: 4 },
-  { npcEs: 'Wie reist du am liebsten?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Ich reise am liebsten mit dem ___.', youRu: 'Я предпочитаю ехать на ___.', pool: 6 },
-  { npcEs: 'Wie viele Tage hat eine Woche?', npcRu: 'Сколько дней в неделе?', youEs: 'Eine Woche hat ___ Tage.', youRu: 'В неделе ___ дней.', pool: 2 },
+  { npcEs: 'Was hast du heute gegessen?', npcRu: 'Что ты ел(а) сегодня?', youEs: 'Ich habe ___ gegessen.', youRu: 'Я ел(а) ___.', words: ['das Brot', 'der Käse', 'das Fleisch', 'das Hähnchen', 'der Fisch', 'der Reis', 'die Suppe', 'die Pizza'] },
+  { npcEs: 'Was möchtest du trinken?', npcRu: 'Что хочешь выпить?', youEs: 'Ich möchte ___.', youRu: 'Я хочу ___.', words: ['das Wasser', 'der Kaffee', 'der Tee', 'die Milch', 'der Saft'] },
+  { npcEs: 'Wohin gehst du?', npcRu: 'Куда ты идёшь?', youEs: 'Ich gehe zum ___.', youRu: 'Я иду в ___.', words: ['der Park', 'das Krankenhaus', 'das Café', 'das Restaurant', 'das Hotel', 'der Laden'] },
+  { npcEs: 'Wie reist du am liebsten?', npcRu: 'Как тебе нравится путешествовать?', youEs: 'Ich reise am liebsten mit dem ___.', youRu: 'Я предпочитаю ехать на ___.', words: ['der Bus', 'das Auto', 'das Taxi', 'Zug', 'Fahrrad', 'Flugzeug'] },
+  { npcEs: 'Wie ist das Wetter?', npcRu: 'Какая погода?', youEs: 'Heute ist es ___.', youRu: 'Сегодня ___.', words: ['heiß', 'kalt', 'warm'] },
+  { npcEs: 'Wer wartet zu Hause auf dich?', npcRu: 'Кто ждёт тебя дома?', youEs: '___ wartet zu Hause.', youRu: 'Дома ждёт ___.', words: ['Mutter', 'Vater', 'Bruder', 'Schwester', 'Oma', 'Opa'] },
+  { npcEs: 'Was ist deine Lieblingsjahreszeit?', npcRu: 'Какое твоё любимое время года?', youEs: 'Meine Lieblingsjahreszeit ist der ___.', youRu: 'Моё любимое время года — ___.', words: ['der Frühling', 'der Sommer', 'der Herbst', 'der Winter'] },
 ];
 
 const RESPONDS_KO = [
@@ -339,16 +342,66 @@ const RESPONDS_KO = [
 ];
 
 const FILLS_KO = [
-  { npcEs: '오늘 뭐 먹었어요?', npcRu: 'Что ты ел(а) сегодня?', youEs: '___ 먹었어요.', youRu: 'Я ел(а) ___.', pool: 5 },
-  { npcEs: '뭐 마실래요?', npcRu: 'Что хочешь выпить?', youEs: '___ 주세요.', youRu: 'Мне ___, пожалуйста.', pool: 5 },
-  { npcEs: '기분이 어때요?', npcRu: 'Как ты себя чувствуешь?', youEs: '저는 ___.', youRu: 'Я ___.', pool: 13 },
-  { npcEs: '어디에 가요?', npcRu: 'Куда ты идёшь?', youEs: '___에 가요.', youRu: 'Я иду в ___.', pool: 6 },
-  { npcEs: '오늘 날씨가 어때요?', npcRu: 'Какая сегодня погода?', youEs: '오늘은 ___.', youRu: 'Сегодня ___.', pool: 10 },
-  { npcEs: '칭찬 한마디 해 주세요 😊', npcRu: 'Скажи мне комплимент 😊', youEs: '당신은 ___!', youRu: 'Ты ___!', pool: 12 },
-  { npcEs: '가족 중에 누가 있어요?', npcRu: 'Кто есть в твоей семье?', youEs: '___이/가 있어요.', youRu: 'У меня есть ___.', pool: 4 },
-  { npcEs: '뭘 타고 다녀요?', npcRu: 'На чём ты ездишь?', youEs: '___를 타요.', youRu: 'Я езжу на ___.', pool: 6 },
-  { npcEs: '몸 어디가 아파요?', npcRu: 'Что у тебя болит?', youEs: '___이/가 아파요.', youRu: 'У меня болит ___.', pool: 9 },
-  { npcEs: '집에 뭐가 있어요?', npcRu: 'Что есть у тебя дома?', youEs: '집에 ___이/가 있어요.', youRu: 'Дома есть ___.', pool: 8 },
+  { npcEs: '오늘 뭐 먹었어요?', npcRu: 'Что ты ел(а) сегодня?', youEs: '___ 먹었어요.', youRu: 'Я ел(а) ___.', words: ['밥', '빵', '고기', '생선', '계란', '김치', '라면', '김밥', '치킨'] },
+  { npcEs: '뭐 마실래요?', npcRu: 'Что хочешь выпить?', youEs: '___ 주세요.', youRu: 'Мне ___, пожалуйста.', words: ['물', '차', '커피', '우유', '주스'] },
+  { npcEs: '기분이 어때요?', npcRu: 'Как ты себя чувствуешь?', youEs: '저는 ___.', youRu: 'Я ___.', words: ['행복해요', '슬퍼요', '기뻐요', '피곤해요', '외로워요'] },
+  { npcEs: '어디에 가요?', npcRu: 'Куда ты идёшь?', youEs: '___에 가요.', youRu: 'Я иду в ___.', words: ['공원', '은행', '병원', '약국', '시장', '학교'] },
+  { npcEs: '오늘 날씨가 어때요?', npcRu: 'Какая сегодня погода?', youEs: '오늘은 ___.', youRu: 'Сегодня ___.', words: ['더워요', '추워요', '눈이 와요'] },
+  { npcEs: '가족 중에 누가 있어요?', npcRu: 'Кто есть в твоей семье?', youEs: '___이/가 있어요.', youRu: 'У меня есть ___.', words: ['엄마', '아빠', '오빠', '언니', '동생', '할머니', '할아버지'] },
+  { npcEs: '뭘 타고 다녀요?', npcRu: 'На чём ты ездишь?', youEs: '___ 타고 다녀요.', youRu: 'Я езжу на ___.', words: ['지하철', '버스', '택시', '기차', '자동차', '자전거'] },
+];
+
+const RESPONDS_ZH = [
+  // Приветствия
+  { npcEs: '你好！你好吗？', npcRu: 'Привет! Как дела?', answer: '我很好，谢谢！你呢？', options: ['我很好，谢谢！你呢？', '马马虎虎，你呢？', '很好，谢谢！'] },
+  { npcEs: '你叫什么名字？', npcRu: 'Как тебя зовут?', answer: '我叫小明。', options: ['我叫小明。', '我是名字。', '小明叫我。'] },
+  { npcEs: '你是哪国人？', npcRu: 'Откуда ты?', answer: '我是俄罗斯人。', options: ['我是俄罗斯人。', '我去俄罗斯。', '俄罗斯很大。'] },
+  { npcEs: '非常感谢！', npcRu: 'Большое спасибо!', answer: '不客气。', options: ['不客气。', '没问题吗？', '请坐。'] },
+  { npcEs: '现在几点？', npcRu: 'Который час?', answer: '现在两点。', options: ['现在两点。', '现在两个。', '两点很好。'] },
+  // Покупки
+  { npcEs: '这个多少钱？', npcRu: 'Сколько это стоит?', answer: '十块钱。', options: ['十块钱。', '十个人。', '十点钟。'] },
+  { npcEs: '有便宜一点的吗？', npcRu: 'Есть подешевле?', answer: '有，这个在打折。', options: ['有，这个在打折。', '没有，都很贵。', '有，很漂亮。'] },
+  // Погода
+  { npcEs: '今天真热！', npcRu: 'Сегодня так жарко!', answer: '是啊，我在出汗！', options: ['是啊，我在出汗！', '是啊，很冷！', '是啊，下大雨！'] },
+  { npcEs: '你觉得会下雨吗？', npcRu: 'Думаешь, будет дождь?', answer: '会，云很黑。', options: ['会，云很黑。', '会，太阳很亮。', '不会，天很阴。'] },
+  // Еда
+  { npcEs: '你推荐什么菜？', npcRu: 'Что посоветуешь?', answer: '饺子很好吃。', options: ['饺子很好吃。', '饺子很冷。', '汤很贵。'] },
+  { npcEs: '咖啡好喝吗？', npcRu: 'Хороший кофе?', answer: '好喝，刚做的。', options: ['好喝，刚做的。', '好喝，很冷。', '不好，太甜了。'] },
+  // Дорога
+  { npcEs: '请问，银行在哪儿？', npcRu: 'Простите, где банк?', answer: '往前走两条街。', options: ['往前走两条街。', '很远很远。', '在银行里。'] },
+  { npcEs: '附近有药店吗？', npcRu: 'Есть аптека рядом?', answer: '有，往右拐。', options: ['有，往右拐。', '有，很远。', '没有，往右拐。'] },
+  // Транспорт
+  { npcEs: '公共汽车几点开？', npcRu: 'Когда отходит автобус?', answer: '三点半开。', options: ['三点半开。', '三个半开。', '半点三开。'] },
+  // Знакомство
+  { npcEs: '你多大了？', npcRu: 'Сколько тебе лет?', answer: '我二十五岁。', options: ['我二十五岁。', '我二十五点。', '我有二十五。'] },
+  // Приглашение
+  { npcEs: '要不要喝杯咖啡？', npcRu: 'Хочешь выпить кофе?', answer: '好啊，太好了！', options: ['好啊，太好了！', '好啊，是咖啡！', '好啊，我渴了！'] },
+  // Прощание
+  { npcEs: '再见！', npcRu: 'До свидания!', answer: '再见！路上小心！', options: ['再见！路上小心！', '再见！晚安！', '再见！吃饭！'] },
+  // Комплимент
+  { npcEs: '你的衣服真漂亮！', npcRu: 'Какой красивый наряд!', answer: '谢谢你！', options: ['谢谢你！', '是的，很漂亮！', '不客气！'] },
+  // Здоровье
+  { npcEs: '你感觉怎么样？', npcRu: 'Как ты себя чувствуешь?', answer: '头有点疼。', options: ['头有点疼。', '我在家里。', '咖啡很疼。'] },
+  // Хобби
+  { npcEs: '你喜欢做什么？', npcRu: 'Что тебе нравится делать?', answer: '我喜欢跳舞和看书。', options: ['我喜欢跳舞和看书。', '音乐很多。', '我不喜欢跳舞和跑步。'] },
+  // Работа
+  { npcEs: '你做什么工作？', npcRu: 'Чем ты занимаешься?', answer: '我是学生。', options: ['我是学生。', '我做学生。', '学生是我的。'] },
+  // Семья
+  { npcEs: '你有兄弟姐妹吗？', npcRu: 'Есть братья или сёстры?', answer: '有，我有一个哥哥。', options: ['有，我有一个哥哥。', '有，哥哥一岁。', '有，我不认识哥哥。'] },
+  // Планы
+  { npcEs: '你今晚做什么？', npcRu: 'Что будешь делать сегодня вечером?', answer: '我要学习中文。', options: ['我要学习中文。', '我明天学习。', '我做中文。'] },
+  // Комплимент за язык
+  { npcEs: '你的中文说得真好！', npcRu: 'Ты очень хорошо говоришь по-китайски!', answer: '谢谢，我还在学。', options: ['谢谢，我还在学。', '谢谢，我说得很好。', '谢谢，我都学完了。'] },
+];
+
+const FILLS_ZH = [
+  { npcEs: '你今天吃了什么？', npcRu: 'Что ты ел(а) сегодня?', youEs: '我吃了___。', youRu: 'Я ел(а) ___.', words: ['米饭', '面条', '饺子', '面包', '鸡蛋', '苹果'] },
+  { npcEs: '你想喝什么？', npcRu: 'Что хочешь выпить?', youEs: '我想喝___。', youRu: 'Я хочу выпить ___.', words: ['水', '茶', '咖啡', '牛奶', '果汁'] },
+  { npcEs: '你去哪儿？', npcRu: 'Куда ты идёшь?', youEs: '我去___。', youRu: 'Я иду в ___.', words: ['公园', '银行', '医院', '学校', '商店', '市场'] },
+  { npcEs: '你怎么去？', npcRu: 'На чём поедешь?', youEs: '我坐___去。', youRu: 'Я поеду на ___.', words: ['公共汽车', '地铁', '出租车', '火车', '飞机'] },
+  { npcEs: '今天天气怎么样？', npcRu: 'Какая сегодня погода?', youEs: '今天___。', youRu: 'Сегодня ___.', words: ['下雨', '下雪', '很热', '很冷'] },
+  { npcEs: '你家有谁？', npcRu: 'Кто есть в твоей семье?', youEs: '我家有___。', youRu: 'В моей семье есть ___.', words: ['妈妈', '爸爸', '哥哥', '姐姐', '弟弟', '妹妹'] },
+  { npcEs: '你今天感觉怎么样？', npcRu: 'Как ты себя сегодня чувствуешь?', youEs: '我很___。', youRu: 'Я ___.', words: ['开心', '高兴', '累', '难过'] },
 ];
 
 // убрать артикль по языку
@@ -362,8 +415,8 @@ export function bare(word, lang) {
 // собрать случайный диалог
 export function makeDialogue() {
   const lang = store.getGame().lang || 'es';
-  const responds = lang === 'en' ? RESPONDS_EN : lang === 'de' ? RESPONDS_DE : lang === 'ko' ? RESPONDS_KO : RESPONDS_ES;
-  const fills = lang === 'en' ? FILLS_EN : lang === 'de' ? FILLS_DE : lang === 'ko' ? FILLS_KO : FILLS_ES;
+  const responds = lang === 'en' ? RESPONDS_EN : lang === 'de' ? RESPONDS_DE : lang === 'ko' ? RESPONDS_KO : lang === 'zh' ? RESPONDS_ZH : RESPONDS_ES;
+  const fills = lang === 'en' ? FILLS_EN : lang === 'de' ? FILLS_DE : lang === 'ko' ? FILLS_KO : lang === 'zh' ? FILLS_ZH : FILLS_ES;
   const CARDS = getCards();
 
   if (Math.random() < 0.45) {
@@ -371,17 +424,14 @@ export function makeDialogue() {
     return { kind: 'respond', npcEs: r.npcEs, npcRu: r.npcRu, answer: r.answer, options: shuffle(r.options) };
   }
   const t = fills[(Math.random() * fills.length) | 0];
-  const pool = CARDS.filter(c => c.region === t.pool && c.es.split(' ').length <= 4);
-  if (!pool.length) { const r = responds[0]; return { kind: 'respond', npcEs: r.npcEs, npcRu: r.npcRu, answer: r.answer, options: shuffle(r.options) }; }
+  // words — белый список подходящих по смыслу ответов; дистракторы только из него,
+  // чтобы не появлялись бессмысленные варианты из чужих тем
+  const pool = t.words
+    ? CARDS.filter(c => t.words.includes(c.es))
+    : CARDS.filter(c => c.region === t.pool && c.es.split(' ').length <= 4);
+  if (pool.length < 3) { const r = responds[(Math.random() * responds.length) | 0]; return { kind: 'respond', npcEs: r.npcEs, npcRu: r.npcRu, answer: r.answer, options: shuffle(r.options) }; }
   const target = pool[(Math.random() * pool.length) | 0];
-  let distrPool = pool.filter(c => c !== target);
-  if (distrPool.length < 2) {
-    distrPool = CARDS.filter(c => c !== target && c.es.split(' ').length <= 3 && c.region === t.pool);
-  }
-  if (distrPool.length < 2) {
-    distrPool = CARDS.filter(c => c !== target && c.es.split(' ').length <= 3);
-  }
-  const distr = shuffle(distrPool).slice(0, 2).map(c => bare(c.es));
+  const distr = shuffle(pool.filter(c => c !== target)).slice(0, 2).map(c => bare(c.es));
   const options = shuffle([bare(target.es), ...distr]);
   return { kind: 'fill', npcEs: t.npcEs, npcRu: t.npcRu, youEs: t.youEs, youRu: t.youRu, hint: target.ru, answer: bare(target.es), options, card: target };
 }

@@ -7,13 +7,14 @@ import * as store from './store.js';
 import * as srs from './srs.js';
 import { speak } from './audio.js';
 
-const SR_LANGS = { es: 'es-ES', en: 'en-US', de: 'de-DE', ko: 'ko-KR' };
-const WRITE_LABELS = { es: 'по-испански', en: 'по-английски', de: 'по-немецки', ko: 'по-корейски' };
+const SR_LANGS = { es: 'es-ES', en: 'en-US', de: 'de-DE', ko: 'ko-KR', zh: 'zh-CN' };
+const WRITE_LABELS = { es: 'по-испански', en: 'по-английски', de: 'по-немецки', ko: 'по-корейски', zh: 'по-китайски' };
 const LANG_LABELS = {
   es: { bien: '¡Bien!', correcto: '¡Correcto!', biendich: '¡Bien dicho!', scrTitle: 'по-испански', phraseTitle: 'по-испански' },
   en: { bien: 'Well done!', correcto: 'Correct!', biendich: 'Well said!', scrTitle: 'по-английски', phraseTitle: 'по-английски' },
   de: { bien: 'Gut gemacht!', correcto: 'Richtig!', biendich: 'Gut gesprochen!', scrTitle: 'по-немецки', phraseTitle: 'по-немецки' },
   ko: { bien: '잘했어요!', correcto: '정답!', biendich: '잘 말했어요!', scrTitle: 'по-корейски', phraseTitle: 'по-корейски' },
+  zh: { bien: '很好！', correcto: '正确！', biendich: '说得好！', scrTitle: 'по-китайски', phraseTitle: 'по-китайски' },
 };
 const ARTICLE_RE = { es: /^(el |la |los |las )/i, en: /^(the |a |an )/i, de: /^(der |die |das |ein |eine |einen |einem |eines )/i };
 const getLang = () => store.getGame().lang || 'es';
@@ -290,8 +291,9 @@ function runScramble(cards) {
     const step = () => {
       if (i >= cards.length) { m.close(); return resolve({ correct, total: cards.length, coins }); }
       const c = cards[i]; m.setProg(`${i + 1}/${cards.length}`);
-      const target = getLang() === 'ko'
-        ? bare(c.es).replace(/[^가-힣]/g, '')
+      const lang = getLang();
+      const target = lang === 'ko' ? bare(c.es).replace(/[^가-힣]/g, '')
+        : lang === 'zh' ? bare(c.es).replace(/[^一-鿿]/g, '')
         : bare(c.es).toLowerCase().replace(/[^a-zäöüßáéíóúüñ]/g, '');
       const letters = shuffle(target.split(''));
       m.body.replaceChildren(elFrom(`<div class="mg-quiz">

@@ -819,3 +819,44 @@ function shade(hex, amt) {
   b = Math.max(0, Math.min(255, Math.round(b + amt * 255)));
   return `rgb(${r},${g},${b})`;
 }
+
+// деревянная табличка «Ежедневно»
+export function drawDailySign(ctx, sx, sy, T, pulse, done) {
+  const u = T / 26;
+  // тень
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.beginPath(); ctx.ellipse(sx, sy + 10 * u, 9 * u, 3.5 * u, 0, 0, Math.PI * 2); ctx.fill();
+  // столбики
+  ctx.fillStyle = '#6b4a2b';
+  rr(ctx, sx - 8 * u, sy - 6 * u, 2.6 * u, 16 * u, 1); ctx.fill();
+  rr(ctx, sx + 5.4 * u, sy - 6 * u, 2.6 * u, 16 * u, 1); ctx.fill();
+  // доска
+  const g = ctx.createLinearGradient(sx, sy - 10 * u, sx, sy + 1 * u);
+  g.addColorStop(0, '#a9743f'); g.addColorStop(1, '#8a5a2e');
+  ctx.fillStyle = g;
+  rr(ctx, sx - 11 * u, sy - 10 * u, 22 * u, 10.5 * u, 2.5); ctx.fill();
+  ctx.strokeStyle = '#5d3d20'; ctx.lineWidth = Math.max(1, u * 0.8);
+  rr(ctx, sx - 11 * u, sy - 10 * u, 22 * u, 10.5 * u, 2.5); ctx.stroke();
+  // прожилки дерева
+  ctx.strokeStyle = 'rgba(93,61,32,0.35)'; ctx.lineWidth = Math.max(1, u * 0.5);
+  ctx.beginPath(); ctx.moveTo(sx - 9 * u, sy - 7.4 * u); ctx.lineTo(sx + 9 * u, sy - 7.4 * u); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx - 9 * u, sy - 2.6 * u); ctx.lineTo(sx + 9 * u, sy - 2.6 * u); ctx.stroke();
+  // гвоздики
+  ctx.fillStyle = '#4a3018';
+  for (const dx of [-9.5, 9.5]) { ctx.beginPath(); ctx.arc(sx + dx * u, sy - 8.6 * u, 0.7 * u, 0, Math.PI * 2); ctx.fill(); }
+  // надпись
+  ctx.save();
+  const fs = Math.max(8, T * 0.24);
+  ctx.font = `bold ${fs}px sans-serif`;
+  ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#fdf3e3';
+  ctx.fillText('Ежедневно', sx, sy - 4.7 * u);
+  ctx.restore();
+  // маркер: галочка если пройдено, пульсирующий ❗ если нет
+  ctx.save();
+  ctx.font = `${Math.max(10, T * 0.3)}px sans-serif`;
+  ctx.textAlign = 'center';
+  if (done) ctx.fillText('✅', sx, sy - 12 * u);
+  else { ctx.globalAlpha = 0.6 + pulse * 0.4; ctx.fillText('❗', sx, sy - 12 * u - pulse * 2 * u); }
+  ctx.restore();
+}

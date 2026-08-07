@@ -39,6 +39,13 @@ const LANG_CONFIG = {
     male: ['injoon', 'minsu', 'min-su', 'hyunsu', 'gubin', 'jinho'],
     preview: '안녕하세요! 만나서 반가워요. 오늘 기분이 어때요?',
   },
+  zh: {
+    bcp: 'zh-CN',
+    altBcp: ['zh-', 'cmn'],
+    female: ['tingting', 'ting-ting', 'xiaoxiao', 'huihui', 'yaoyao', 'meijia', 'lili', 'sinji'],
+    male: ['yunyang', 'kangkang', 'binbin', 'liang', 'wang'],
+    preview: '你好！很高兴认识你。今天天气真好！',
+  },
 };
 
 // Параметры pitch/rate по полу — разница очень заметная

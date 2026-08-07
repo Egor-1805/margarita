@@ -43,6 +43,9 @@ export function createWorld(canvas, look, handlers) {
   // сундуки
   const chests = CHEST_SPOTS.map(c => ({ ...c }));
 
+  // деревянная табличка «Ежедневно» — ежедневная тренировка слов
+  const daily = { x: 23.2, y: 12.3 };
+
   // декор — фиксированные позиции
   const decor = [
     ...TREE_SPOTS.map(([x, y]) => ({ x, y, type: 'tree' })),
@@ -144,6 +147,12 @@ export function createWorld(canvas, look, handlers) {
     }
     const da = Math.hypot(state.px - aya.x, state.py - aya.y - 0.3);
     if (da < bestD) { bestD = da; best = { type: 'aya', ref: aya, label: '🌸 Лея' }; }
+    const dd = Math.hypot(state.px - daily.x, state.py - daily.y);
+    if (dd < bestD) {
+      bestD = dd;
+      const done = handlers.isDailyDone && handlers.isDailyDone();
+      best = { type: 'daily', ref: daily, label: done ? '🪧 Ежедневно ✅' : '🪧 Ежедневно — 20 слов' };
+    }
     if ((best && best.ref) !== (state.nearby && state.nearby.ref)) {
       state.nearby = best;
       handlers.onNearby && handlers.onNearby(best);
@@ -189,6 +198,13 @@ export function createWorld(canvas, look, handlers) {
       } else {
         const open = handlers.isChestOpen && handlers.isChestOpen(c.id);
         S.drawChest(ctx, cx, cy, T, open, pulse);
+      }
+    }
+    // табличка «Ежедневно»
+    {
+      const dsx = daily.x * T - cam.x, dsy = daily.y * T - cam.y;
+      if (dsx > -T * 2 && dsx < vw + T * 2 && dsy > -T * 2 && dsy < vh + T * 2) {
+        S.drawDailySign(ctx, dsx, dsy, T, pulse, handlers.isDailyDone && handlers.isDailyDone());
       }
     }
     // сущности по глубине
@@ -316,6 +332,7 @@ export function createWorld(canvas, look, handlers) {
     else if (type === 'npc') handlers.onTalk && handlers.onTalk(ref);
     else if (type === 'chest') handlers.onChest && handlers.onChest(ref);
     else if (type === 'aya') handlers.onAya && handlers.onAya();
+    else if (type === 'daily') handlers.onDaily && handlers.onDaily();
     else if (type === 'monument') handlers.onMonument && handlers.onMonument(ref);
   }
 
