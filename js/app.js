@@ -3,7 +3,7 @@
 // ============================================================
 import * as store from './store.js';
 import { createWorld } from './world.js';
-import { LOCATIONS, FORMATS, activeFormats, pickWords, isNew, makeDialogue, getCards } from './locations.js';
+import { LOCATIONS, FORMATS, activeFormats, pickWords, isNew, makeDialogue, getCards, wordLabel } from './locations.js';
 import * as srs from './srs.js';
 import { speak } from './audio.js';
 import { runIntro, runGame, runDialogue } from './minigames.js';
@@ -568,7 +568,7 @@ function dailyFlashcards(words) {
       body.replaceChildren(el(`<div class="mg-intro" style="text-align:center">
         <div id="dCard" style="cursor:pointer;border:2px solid var(--c-line,#e5d9c5);border-radius:16px;padding:1.6rem 1rem;margin:.4rem 0;min-height:9.5rem;display:flex;flex-direction:column;justify-content:center;gap:.4rem">
           ${flipped
-            ? `<div class="mg-es" style="font-size:1.6rem">${c.es} <button class="mg-speak" id="dSay">🔊</button></div>
+            ? `<div class="mg-es" style="font-size:1.6rem">${wordLabel(c)} <button class="mg-speak" id="dSay">🔊</button></div>
                <div class="mg-emoji" style="font-size:2rem">${c.emoji}</div>
                <div class="mg-ex" style="font-size:.9rem"><span>${c.exEs}</span><br><em>${c.exRu}</em></div>`
             : `<div class="mg-ru" style="font-size:1.5rem;font-weight:700">${c.ru}</div>
@@ -612,7 +612,7 @@ function dailyQuizRound(words, round) {
       const distr = dShuffle(words.filter(w => w !== c && w.ru !== c.ru)).slice(0, 2).map(w => w.ru);
       const opts = dShuffle([c.ru, ...distr]);
       body.replaceChildren(el(`<div class="mg-quiz">
-        <div class="mg-es" style="font-size:1.5rem;text-align:center">${c.es} <button class="mg-speak" id="dSay">🔊</button></div>
+        <div class="mg-es" style="font-size:1.5rem;text-align:center">${wordLabel(c)} <button class="mg-speak" id="dSay">🔊</button></div>
         <div class="mg-q">Что это значит?</div>
         <div class="mg-opts">${opts.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${o}</button>`).join('')}</div>
       </div>`));

@@ -2,7 +2,7 @@
 //  Мини-игры (DOM-модалки): знакомство, пары, мемори, картинка,
 //  аудирование, ввод, диалоги. Возвращают Promise с результатом.
 // ============================================================
-import { getCards, bare } from './locations.js';
+import { getCards, bare, wordLabel } from './locations.js';
 import * as store from './store.js';
 import * as srs from './srs.js';
 import { speak } from './audio.js';
@@ -88,7 +88,7 @@ export function runIntro(cards) {
       m.setProg(`${i + 1}/${cards.length}`);
       m.body.replaceChildren(elFrom(`<div class="mg-intro">
         <div class="mg-badge">Новое слово</div>
-        <div class="mg-es">${c.es} ${m.speakBtn(c.es)}</div>
+        <div class="mg-es">${wordLabel(c)} ${m.speakBtn(c.es)}</div>
         <div class="mg-emoji">${c.emoji}</div>
         <div class="mg-ru">${c.ru}</div>
         <div class="mg-ex"><span>${c.exEs}</span><em>${c.exRu}</em></div>
@@ -133,7 +133,7 @@ function runMatch(cards) {
     const left = shuffle(cards), right = shuffle(cards);
     m.body.replaceChildren(elFrom(`<div class="mg-match">
       <div class="mg-col" data-side="l">${left.map(c => `<button class="mg-pair" data-id="${c.id}">${c.ru}</button>`).join('')}</div>
-      <div class="mg-col" data-side="r">${right.map(c => `<button class="mg-pair es" data-id="${c.id}">${c.es}</button>`).join('')}</div>
+      <div class="mg-col" data-side="r">${right.map(c => `<button class="mg-pair es" data-id="${c.id}">${wordLabel(c)}</button>`).join('')}</div>
     </div>`));
     const btns = [...m.body.querySelectorAll('.mg-pair')];
     const sel = (btn) => {
@@ -173,7 +173,7 @@ function runMemory(cards) {
     const wrong = {};
     m.onAbort = () => { m.close(); resolve({ correct: matched, total: cards.length, coins }); };
     const tiles = shuffle([
-      ...cards.map(c => ({ id: c.id, face: c.es, kind: 'es' })),
+      ...cards.map(c => ({ id: c.id, face: wordLabel(c), say: c.es, kind: 'es' })),
       ...cards.map(c => ({ id: c.id, face: c.ru, kind: 'ru' })),
     ]);
     m.setProg(`0/${cards.length}`);
@@ -183,7 +183,7 @@ function runMemory(cards) {
     btns.forEach((b, i) => b.onclick = () => {
       if (lock || b.classList.contains('open') || b.classList.contains('done')) return;
       b.classList.add('open'); flipped.push(b);
-      const t = tiles[i]; if (t.kind === 'es') speak(t.face);
+      const t = tiles[i]; if (t.kind === 'es') speak(t.say);
       if (flipped.length === 2) {
         lock = true;
         const [a, c] = flipped;
@@ -241,8 +241,11 @@ function runQuiz(cards, mode) {
           sayEs = c.exEs;
         }
       }
+      // в «Картинке» варианты — слова изучаемого языка: добавляем транскрипцию, если есть
+      const ALL = getCards();
+      const optLabel = (o) => { if (mode !== 'picture') return o; const f = ALL.find(x => x.es === o); return f ? wordLabel(f) : o; };
       m.body.replaceChildren(elFrom(`<div class="mg-quiz">${head}
-        <div class="mg-opts">${opts.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${o}</button>`).join('')}</div></div>`));
+        <div class="mg-opts">${opts.map(o => `<button class="mg-opt" data-v="${encodeURIComponent(o)}">${optLabel(o)}</button>`).join('')}</div></div>`));
       m.wireSpeak();
       if (doSpeak) setTimeout(() => speak(sayEs), 150);
       if (mode === 'listen') m.body.querySelector('#mgReplay').onclick = () => speak(c.es);
@@ -370,7 +373,7 @@ function runSpeak(cards) {
       const c = cards[i]; m.setProg(`${i + 1}/${cards.length}`);
       m.body.replaceChildren(elFrom(`<div class="mg-quiz">
         <div class="mg-q">Произнеси вслух:</div>
-        <div class="mg-es">${c.es} ${m.speakBtn(c.es)}</div>
+        <div class="mg-es">${wordLabel(c)} ${m.speakBtn(c.es)}</div>
         <div class="mg-emoji">${c.emoji}</div><div class="mg-ru sm">${c.ru}</div>
         ${SR ? `<button class="mg-btn" id="mgMic">🎤 Сказать</button>` : `<button class="mg-btn" id="mgOk">✓ Повторил(а) вслух</button>`}
         <div class="mg-fb" id="mgFb"></div></div>`));

@@ -16,14 +16,24 @@ import * as srs from './srs.js';
 const CARDS_EN = [...CARDS_EN_BASE, ...CARDS_EN_EXTRA];
 const CARDS_DE_ALL = [...CARDS_DE, ...CARDS_DE_EXTRA_A, ...CARDS_DE_EXTRA_B];
 
+// у китайских карточек пиньинь записан в конце ru-поля как «(nǐ hǎo)» —
+// выносим его в поле tr, чтобы показывать рядом с иероглифом в заданиях
+const withTr = (c) => {
+  const m = c.ru.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+  return m ? { ...c, ru: m[1], tr: m[2] } : c;
+};
+
 // полные колоды: основная + «азы» (регион 14, здание Ясли)
 const DECKS = {
   es: [...CARDS_ES, ...BASICS.es],
   en: [...CARDS_EN, ...BASICS.en],
   de: [...CARDS_DE_ALL, ...BASICS.de],
   ko: [...CARDS_KO, ...BASICS.ko],
-  zh: [...CARDS_ZH, ...BASICS.zh],
+  zh: [...CARDS_ZH.map(withTr), ...BASICS.zh],
 };
+
+// подпись слова для заданий: иероглифы/хангыль + транскрипция, если есть
+export function wordLabel(c) { return c.tr ? `${c.es} (${c.tr})` : c.es; }
 
 export function getCards() {
   const lang = store.getGame().lang || 'es';
