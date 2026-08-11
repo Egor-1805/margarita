@@ -25,15 +25,16 @@ function fillRR(ctx, x, y, w, h, r, color) {
   ctx.fill();
 }
 
-// мягкая «размытая» тень — радиальный градиент вместо плоского эллипса
+// мягкая «размытая» тень — радиальный градиент вместо плоского эллипса.
+// Тёплый коричневый тон вместо нейтрально-чёрного — акварельные тени никогда не серые.
 function softShadow(ctx, sx, sy, rx, ry, alpha) {
   if (alpha === undefined) alpha = 0.22;
   ctx.save();
   ctx.translate(sx, sy); ctx.scale(1, ry / rx); ctx.translate(-sx, -sy);
   const g = ctx.createRadialGradient(sx, sy, 0, sx, sy, rx);
-  g.addColorStop(0, `rgba(15,15,10,${alpha})`);
-  g.addColorStop(0.65, `rgba(15,15,10,${alpha * 0.55})`);
-  g.addColorStop(1, 'rgba(15,15,10,0)');
+  g.addColorStop(0, `rgba(80,50,26,${alpha})`);
+  g.addColorStop(0.65, `rgba(80,50,26,${alpha * 0.5})`);
+  g.addColorStop(1, 'rgba(80,50,26,0)');
   ctx.fillStyle = g;
   ctx.beginPath(); ctx.arc(sx, sy, rx, 0, Math.PI * 2); ctx.fill();
   ctx.restore();
@@ -179,13 +180,13 @@ export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
   // мягкая тень под зданием
   softShadow(ctx, sx + w / 2, sy + h + 4, w / 1.7, 9, 0.2);
 
-  // стены с лёгким градиентом
+  // стены — тёплый акварельный пергамент вместо холодного бело-серого
   const wallG = ctx.createLinearGradient(sx, 0, sx + w, 0);
-  wallG.addColorStop(0, '#ede5d8');
-  wallG.addColorStop(0.45, '#fdf6ee');
-  wallG.addColorStop(1, '#e8e0d2');
+  wallG.addColorStop(0, '#f0e2c8');
+  wallG.addColorStop(0.45, '#fbf1dc');
+  wallG.addColorStop(1, '#ecdcbc');
   ctx.fillStyle = wallG;
-  rr(ctx, sx, sy + T * 0.65, w, h - T * 0.65, [0, 0, 4, 4]); ctx.fill();
+  rr(ctx, sx, sy + T * 0.65, w, h - T * 0.65, [0, 0, 7, 7]); ctx.fill();
 
   // горизонтальная обшивка стен — тонкие линии для фактуры
   ctx.save();
@@ -202,7 +203,7 @@ export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
   ctx.restore();
 
   // нижний плинтус
-  ctx.fillStyle = shade('#fbf3e6', -0.1);
+  ctx.fillStyle = shade('#f0e2c8', -0.1);
   rr(ctx, sx, sy + h - 9, w, 9, [0, 0, 4, 4]); ctx.fill();
 
   // крыша с градиентом
@@ -232,7 +233,7 @@ export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
 
   // ступенька
   const dw = T * 0.74, dx = sx + w / 2 - dw / 2;
-  ctx.fillStyle = shade('#fbf3e6', -0.18);
+  ctx.fillStyle = shade('#f0e2c8', -0.18);
   rr(ctx, dx - 5, sy + h - 5, dw + 10, 5, 2); ctx.fill();
 
   // тент-маркиза над дверью
@@ -508,57 +509,63 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   const boardOffX = onBoard ? 2 * u : 0;
   const boardOffY = onBoard ? 1.5 * u : 0;
   if (!hiddenLegs) {
-    const legColor = girl ? shade(skin, -0.14) : '#3a4e72';
-    const shoeColor = girl ? '#c0507a' : '#2a3a58';
+    const legColor = girl ? shade(skin, -0.1) : '#3a4e72';
+    const shoeColor = girl ? '#b5566f' : '#2a3a58';
     for (const side of [-1, 1]) {
-      const lx = sx + side * 3.6 * u - boardOffX * (side < 0 ? 1 : -1);
+      const lx = sx + side * 3.4 * u - boardOffX * (side < 0 ? 1 : -1);
       const ly = yy + 6 * u + side * -step + boardOffY;
+      // нога — вытянутый овал, без единого угла
       const lg = ctx.createLinearGradient(lx - 2 * u, 0, lx + 2 * u, 0);
-      lg.addColorStop(0, shade(legColor, -0.08)); lg.addColorStop(0.5, shade(legColor, 0.06)); lg.addColorStop(1, shade(legColor, -0.08));
+      lg.addColorStop(0, shade(legColor, -0.1)); lg.addColorStop(0.5, shade(legColor, 0.12)); lg.addColorStop(1, shade(legColor, -0.1));
       ctx.fillStyle = lg;
-      rr(ctx, lx - 1.9 * u, ly, 3.8 * u, 5.5 * u, 2); ctx.fill();
-      const sg2 = ctx.createLinearGradient(lx - 2.5 * u, 0, lx + 2.5 * u, 0);
-      sg2.addColorStop(0, shade(shoeColor, -0.1)); sg2.addColorStop(0.5, shade(shoeColor, 0.14)); sg2.addColorStop(1, shade(shoeColor, -0.1));
+      ctx.beginPath(); ctx.ellipse(lx, ly + 2.9 * u, 1.85 * u, 3 * u, 0, 0, Math.PI * 2); ctx.fill();
+      // ботинок — тоже овал
+      const sg2 = ctx.createLinearGradient(lx - 2.4 * u, 0, lx + 2.4 * u, 0);
+      sg2.addColorStop(0, shade(shoeColor, -0.12)); sg2.addColorStop(0.5, shade(shoeColor, 0.18)); sg2.addColorStop(1, shade(shoeColor, -0.12));
       ctx.fillStyle = sg2;
-      rr(ctx, lx - 2.5 * u, ly + 4.8 * u, 5 * u, 2.2 * u, 1); ctx.fill();
-      ctx.fillStyle = 'rgba(255,255,255,0.35)';
-      ctx.beginPath(); ctx.ellipse(lx - 0.8 * u, ly + 5.4 * u, 1 * u, 0.4 * u, -0.2, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.ellipse(lx - 0.2 * u, ly + 6.1 * u, 2.5 * u, 1.7 * u, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,240,225,0.45)';
+      ctx.beginPath(); ctx.ellipse(lx - 1 * u, ly + 5.5 * u, 0.9 * u, 0.4 * u, -0.2, 0, Math.PI * 2); ctx.fill();
     }
   }
 
   // тело
   if (girl) {
-    // платье — трапеция с цилиндрическим градиентом (объём)
+    // платье — колокол на изогнутых bezier-боках, без единого прямого угла
     const dressG = ctx.createLinearGradient(sx - 8.8 * u, 0, sx + 8.8 * u, 0);
     dressG.addColorStop(0, shade(shirt, -0.16));
-    dressG.addColorStop(0.42, shade(shirt, 0.1));
-    dressG.addColorStop(0.58, shade(shirt, 0.1));
+    dressG.addColorStop(0.42, shade(shirt, 0.12));
+    dressG.addColorStop(0.58, shade(shirt, 0.12));
     dressG.addColorStop(1, shade(shirt, -0.16));
     ctx.fillStyle = dressG;
     ctx.beginPath();
-    ctx.moveTo(sx - 6.5 * u, yy - 2 * u);
-    ctx.lineTo(sx + 6.5 * u, yy - 2 * u);
-    ctx.lineTo(sx + 8.8 * u, yy + 9.5 * u);
-    ctx.lineTo(sx - 8.8 * u, yy + 9.5 * u);
+    ctx.moveTo(sx - 6.2 * u, yy - 2 * u);
+    ctx.bezierCurveTo(sx - 7.6 * u, yy + 1 * u, sx - 8.3 * u, yy + 4.8 * u, sx - 8.8 * u, yy + 9.2 * u);
+    ctx.quadraticCurveTo(sx, yy + 11.2 * u, sx + 8.8 * u, yy + 9.2 * u);
+    ctx.bezierCurveTo(sx + 8.3 * u, yy + 4.8 * u, sx + 7.6 * u, yy + 1 * u, sx + 6.2 * u, yy - 2 * u);
+    ctx.quadraticCurveTo(sx, yy - 0.1 * u, sx - 6.2 * u, yy - 2 * u);
     ctx.closePath(); ctx.fill();
-    // складки — мягкая мультиплай-тень вместо плоской линии
+    // складки — мягкая мультиплай-тень, повторяет изгиб подола
     ctx.save(); ctx.globalCompositeOperation = 'multiply';
-    ctx.strokeStyle = 'rgba(140,110,120,0.28)'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(sx - 2.5 * u, yy + 0.5 * u); ctx.quadraticCurveTo(sx - 3.8 * u, yy + 5 * u, sx - 4.5 * u, yy + 9.3 * u); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx + 2.5 * u, yy + 0.5 * u); ctx.quadraticCurveTo(sx + 3.8 * u, yy + 5 * u, sx + 4.5 * u, yy + 9.3 * u); ctx.stroke();
+    ctx.strokeStyle = 'rgba(150,105,85,0.24)'; ctx.lineWidth = 1.3; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(sx - 2.2 * u, yy + 0.6 * u); ctx.bezierCurveTo(sx - 3.6 * u, yy + 3.6 * u, sx - 4.1 * u, yy + 6.6 * u, sx - 4.7 * u, yy + 9 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 2.2 * u, yy + 0.6 * u); ctx.bezierCurveTo(sx + 3.6 * u, yy + 3.6 * u, sx + 4.1 * u, yy + 6.6 * u, sx + 4.7 * u, yy + 9 * u); ctx.stroke();
     ctx.restore();
-    // мягкий блик по центру платья
-    ctx.fillStyle = 'rgba(255,255,255,0.16)';
-    ctx.beginPath(); ctx.ellipse(sx - 1.6 * u, yy + 3 * u, 1.4 * u, 5 * u, 0.05, 0, Math.PI * 2); ctx.fill();
-    // подол — тонкая окантовка
-    ctx.strokeStyle = shade(shirt, -0.22); ctx.lineWidth = 1;
-    ctx.beginPath(); ctx.moveTo(sx - 8.8 * u, yy + 9.3 * u); ctx.lineTo(sx + 8.8 * u, yy + 9.3 * u); ctx.stroke();
+    // тёплый акварельный блик по центру платья
+    ctx.fillStyle = 'rgba(255,235,210,0.22)';
+    ctx.beginPath(); ctx.ellipse(sx - 1.8 * u, yy + 3.2 * u, 1.5 * u, 5.4 * u, 0.05, 0, Math.PI * 2); ctx.fill();
   } else {
-    // рубашка мужская
+    // рубашка мужская — мягкий bezier-силуэт вместо прямоугольника
     const sg = ctx.createLinearGradient(sx - 7 * u, 0, sx + 7 * u, 0);
-    sg.addColorStop(0, shade(shirt, -0.14)); sg.addColorStop(0.45, shade(shirt, 0.08)); sg.addColorStop(0.55, shade(shirt, 0.08)); sg.addColorStop(1, shade(shirt, -0.14));
+    sg.addColorStop(0, shade(shirt, -0.14)); sg.addColorStop(0.45, shade(shirt, 0.1)); sg.addColorStop(0.55, shade(shirt, 0.1)); sg.addColorStop(1, shade(shirt, -0.14));
     ctx.fillStyle = sg;
-    rr(ctx, sx - 7 * u, yy - 2 * u, 14 * u, 10 * u, 2); ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(sx - 6.4 * u, yy - 1.4 * u);
+    ctx.bezierCurveTo(sx - 7.4 * u, yy + 1.6 * u, sx - 7.2 * u, yy + 5.6 * u, sx - 6.4 * u, yy + 7.8 * u);
+    ctx.quadraticCurveTo(sx, yy + 9.2 * u, sx + 6.4 * u, yy + 7.8 * u);
+    ctx.bezierCurveTo(sx + 7.2 * u, yy + 5.6 * u, sx + 7.4 * u, yy + 1.6 * u, sx + 6.4 * u, yy - 1.4 * u);
+    ctx.quadraticCurveTo(sx, yy - 0.1 * u, sx - 6.4 * u, yy - 1.4 * u);
+    ctx.closePath(); ctx.fill();
     // воротник/планка
     ctx.save(); ctx.globalCompositeOperation = 'multiply';
     ctx.fillStyle = 'rgba(120,100,90,0.22)';
@@ -573,12 +580,13 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
       ctx.beginPath(); ctx.arc(sx - 0.15 * u, yy + i * 2.6 * u - 0.15 * u, 0.35 * u, 0, Math.PI * 2); ctx.fill();
     }
   }
-  // плечи с объёмным градиентом + тонкий верхний блик (rim light)
-  const shG = ctx.createLinearGradient(0, yy - 3.2 * u, 0, yy - 0.4 * u);
-  shG.addColorStop(0, shade(shirt, 0.2)); shG.addColorStop(1, shade(shirt, 0.02));
+  // плечи — овал вместо прямоугольника, с тёплым верхним рим-лайтом
+  const shG = ctx.createLinearGradient(0, yy - 3.4 * u, 0, yy - 0.6 * u);
+  shG.addColorStop(0, shade(shirt, 0.22)); shG.addColorStop(1, shade(shirt, 0.02));
   ctx.fillStyle = shG;
-  rr(ctx, sx - 8 * u, yy - 3.2 * u, 16 * u, 2.8 * u, 3); ctx.fill();
-  rimLight(ctx, () => rr(ctx, sx - 8 * u, yy - 3.2 * u, 16 * u, 2.8 * u, 3), 0.28);
+  ctx.beginPath(); ctx.ellipse(sx, yy - 1.9 * u, 8.3 * u, 2 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,240,220,0.32)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(sx, yy - 1.9 * u, 8.3 * u, 2 * u, 0, Math.PI, Math.PI * 2); ctx.stroke();
 
   // шея с мягкой тенью от подбородка
   ctx.fillStyle = shade(skin, -0.05);
@@ -631,23 +639,17 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
   }
   ctx.restore();
 
-  // брови — разные для мальчика и девочки
+  // брови — выше и тоньше, с явным зазором от глаз (не сливаются с ресницами)
   ctx.lineCap = 'round';
   if (girl) {
-    ctx.strokeStyle = shade(hair, -0.2); ctx.lineWidth = 0.8 * u;
-    ctx.beginPath(); ctx.moveTo(sx - 3.8 * u, yy - 9.6 * u); ctx.quadraticCurveTo(sx - 2.2 * u, yy - 10.4 * u, sx - 1.2 * u, yy - 9.8 * u); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx + 1.2 * u, yy - 9.8 * u); ctx.quadraticCurveTo(sx + 2.2 * u, yy - 10.4 * u, sx + 3.8 * u, yy - 9.6 * u); ctx.stroke();
+    ctx.strokeStyle = shade(hair, -0.2); ctx.lineWidth = 0.7 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 3.6 * u, yy - 10.1 * u); ctx.quadraticCurveTo(sx - 2.1 * u, yy - 10.8 * u, sx - 1.1 * u, yy - 10.2 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 1.1 * u, yy - 10.2 * u); ctx.quadraticCurveTo(sx + 2.1 * u, yy - 10.8 * u, sx + 3.6 * u, yy - 10.1 * u); ctx.stroke();
   } else {
-    ctx.strokeStyle = shade(hair, -0.3); ctx.lineWidth = 1.4 * u;
-    ctx.beginPath(); ctx.moveTo(sx - 4.0 * u, yy - 9.4 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.0 * u, sx - 1.0 * u, yy - 9.4 * u); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx + 1.0 * u, yy - 9.4 * u); ctx.quadraticCurveTo(sx + 2 * u, yy - 10.0 * u, sx + 4.0 * u, yy - 9.4 * u); ctx.stroke();
+    ctx.strokeStyle = shade(hair, -0.3); ctx.lineWidth = 1.3 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 4.0 * u, yy - 9.7 * u); ctx.quadraticCurveTo(sx - 2 * u, yy - 10.3 * u, sx - 1.0 * u, yy - 9.7 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 1.0 * u, yy - 9.7 * u); ctx.quadraticCurveTo(sx + 2 * u, yy - 10.3 * u, sx + 4.0 * u, yy - 9.7 * u); ctx.stroke();
   }
-
-  // веко — мягкая линия-складка над глазом
-  ctx.strokeStyle = shade(skin, -0.16); ctx.lineWidth = 0.5 * u; ctx.globalAlpha = 0.5;
-  ctx.beginPath(); ctx.moveTo(sx - 4.4 * u, yy - 7.6 * u); ctx.quadraticCurveTo(sx - 2.8 * u, yy - 8.5 * u, sx - 1.1 * u, yy - 7.7 * u); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sx + 1.1 * u, yy - 7.7 * u); ctx.quadraticCurveTo(sx + 2.8 * u, yy - 8.5 * u, sx + 4.4 * u, yy - 7.6 * u); ctx.stroke();
-  ctx.globalAlpha = 1;
 
   // белки глаз с лёгкой тенью в уголках
   const eyeRy = girl ? 1.8 * u : 1.5 * u;
@@ -657,15 +659,15 @@ export function drawPerson(ctx, sx, sy, T, look, phase, moving) {
     ctx.fillStyle = eg;
     ctx.beginPath(); ctx.ellipse(sx + ex * u, yy - 6.8 * u, 2 * u, eyeRy, 0, 0, Math.PI * 2); ctx.fill();
   }
-  // ресницы у девочки — изогнутые, объёмные
+  // верхняя ресничная линия — один чистый штрих вдоль века + короткий акцент в уголке
   if (girl) {
-    ctx.strokeStyle = shade(hair, -0.25); ctx.lineCap = 'round';
-    for (const [ex, ea, lw] of [[-4.6, -0.35, 0.85], [-3.3, -0.62, 0.95], [-1.9, -0.78, 0.85], [1.9, -Math.PI + 0.78, 0.85], [3.3, -Math.PI + 0.62, 0.95], [4.6, -Math.PI + 0.35, 0.85]]) {
-      ctx.lineWidth = lw * u;
-      const x0 = sx + ex * u, y0 = yy - 8.35 * u;
-      const x1 = x0 + Math.cos(ea) * 1.5 * u, y1 = y0 + Math.sin(ea) * 1.5 * u;
-      ctx.beginPath(); ctx.moveTo(x0, y0); ctx.quadraticCurveTo((x0 + x1) / 2 + Math.cos(ea + 1) * 0.3 * u, (y0 + y1) / 2 + Math.sin(ea + 1) * 0.3 * u, x1, y1); ctx.stroke();
-    }
+    ctx.strokeStyle = shade(hair, -0.3); ctx.lineCap = 'round';
+    ctx.lineWidth = 0.85 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 4.3 * u, yy - 7.5 * u); ctx.quadraticCurveTo(sx - 2.8 * u, yy - 8.3 * u, sx - 1.1 * u, yy - 7.75 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 1.1 * u, yy - 7.75 * u); ctx.quadraticCurveTo(sx + 2.8 * u, yy - 8.3 * u, sx + 4.3 * u, yy - 7.5 * u); ctx.stroke();
+    ctx.lineWidth = 0.65 * u;
+    ctx.beginPath(); ctx.moveTo(sx - 4.3 * u, yy - 7.5 * u); ctx.lineTo(sx - 5 * u, yy - 7.95 * u); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(sx + 4.3 * u, yy - 7.5 * u); ctx.lineTo(sx + 5 * u, yy - 7.95 * u); ctx.stroke();
   }
   // радужка с градиентом + зрачок + двойной блик
   for (const ex of [-2.8, 2.8]) {
@@ -763,48 +765,73 @@ function drawAcc(ctx, sx, yy, u, acc, girl) {
 }
 
 function drawHair(ctx, sx, yy, u, hair, style, girl) {
-  // объёмный градиент: тёплый блик сверху-слева → насыщенный тон → тень снизу-справа
+  // объёмный тёплый градиент: блик сверху-слева → насыщенный тон → тень снизу-справа
   const hairG = ctx.createLinearGradient(sx - 6 * u, yy - 14 * u, sx + 5 * u, yy - 3 * u);
-  hairG.addColorStop(0, shade(hair, 0.32));
-  hairG.addColorStop(0.35, shade(hair, 0.06));
-  hairG.addColorStop(0.75, shade(hair, -0.12));
-  hairG.addColorStop(1, shade(hair, -0.26));
+  hairG.addColorStop(0, shade(hair, 0.34));
+  hairG.addColorStop(0.35, shade(hair, 0.08));
+  hairG.addColorStop(0.75, shade(hair, -0.1));
+  hairG.addColorStop(1, shade(hair, -0.24));
   ctx.fillStyle = hairG;
+
+  // купол-макушка — общий для течных причёсок
+  const crown = () => { ctx.beginPath(); ctx.ellipse(sx, yy - 9.7 * u, 7 * u, 5.5 * u, 0, Math.PI, 0); ctx.fill(); };
+
+  // текучая прядь у виска — изогнутая bezier-лента, а не блок
+  const lock = (side, len) => {
+    ctx.fillStyle = hairG;
+    const x0 = sx + side * 6.6 * u, y0 = yy - 9.6 * u;
+    const xE = sx + side * 5.2 * u, yE = y0 + len * u;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.bezierCurveTo(x0 + side * 1.4 * u, y0 + len * 0.4 * u, xE + side * 1.6 * u, yE - len * 0.3 * u, xE, yE);
+    ctx.quadraticCurveTo(x0 - side * 1.4 * u, (y0 + yE) / 2, x0 - side * 1.8 * u, y0 + 1.4 * u);
+    ctx.closePath(); ctx.fill();
+  };
+
   if (style === 'curly') {
     const curls = [[-6, -9], [-3.5, -11.8], [0, -13], [3.5, -11.8], [6, -9], [-5, -7.2], [5, -7.2], [0, -8]];
     for (const [dx, dy] of curls) { ctx.beginPath(); ctx.arc(sx + dx * u, yy + dy * u, 3.4 * u, 0, Math.PI * 2); ctx.fill(); }
     // лёгкий глянец на завитках — тонкие блики-полумесяцы, не «залысины»
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+    ctx.fillStyle = 'rgba(255,240,220,0.22)';
     ctx.beginPath(); ctx.arc(sx - 2 * u, yy - 13.3 * u, 1 * u, Math.PI * 1.1, Math.PI * 1.9); ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,0.12)';
+    ctx.fillStyle = 'rgba(255,240,220,0.13)';
     ctx.beginPath(); ctx.arc(sx + 3.2 * u, yy - 11.8 * u, 0.7 * u, Math.PI * 1.1, Math.PI * 1.9); ctx.fill();
     ctx.beginPath(); ctx.arc(sx - 5.2 * u, yy - 8.6 * u, 0.9 * u, 0, Math.PI * 2); ctx.fill();
-  } else if (style === 'ponytail') {
-    ctx.beginPath(); ctx.arc(sx, yy - 8.8 * u, 6.8 * u, Math.PI, 0); ctx.fill();
-    ctx.fillRect(sx - 6.8 * u, yy - 10.5 * u, 2.6 * u, 6 * u);
-    ctx.fillRect(sx + 4.2 * u, yy - 10.5 * u, 2.6 * u, 6 * u);
-    // хвостик
-    ctx.beginPath(); ctx.moveTo(sx + 5 * u, yy - 8 * u);
-    ctx.quadraticCurveTo(sx + 10 * u, yy - 4 * u, sx + 7 * u, yy + 2 * u);
-    ctx.quadraticCurveTo(sx + 11 * u, yy - 3 * u, sx + 8 * u, yy - 8 * u);
-    ctx.closePath(); ctx.fill();
-    // блик-прядь через верх головы + вдоль хвоста
-    ctx.strokeStyle = 'rgba(255,255,255,0.3)'; ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(sx - 3.5 * u, yy - 13.4 * u); ctx.quadraticCurveTo(sx, yy - 15 * u, sx + 3.2 * u, yy - 13.2 * u); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(sx + 6.2 * u, yy - 6.5 * u); ctx.quadraticCurveTo(sx + 9.5 * u, yy - 3 * u, sx + 7.3 * u, yy); ctx.stroke();
-  } else {
-    // короткие
-    ctx.beginPath(); ctx.arc(sx, yy - 9 * u, 7 * u, Math.PI, 0); ctx.fill();
-    ctx.fillRect(sx - 7 * u, yy - 10.5 * u, 2.6 * u, 6.5 * u);
-    ctx.fillRect(sx + 4.4 * u, yy - 10.5 * u, 2.6 * u, 6.5 * u);
-    if (!girl) {
-      // чёлка
-      ctx.fillRect(sx - 5.5 * u, yy - 12.5 * u, 11 * u, 3 * u);
-    }
-    // блик-прядь по макушке
-    ctx.strokeStyle = 'rgba(255,255,255,0.28)'; ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
-    ctx.beginPath(); ctx.moveTo(sx - 4.2 * u, yy - 14.6 * u); ctx.quadraticCurveTo(sx, yy - 16 * u, sx + 4 * u, yy - 14.5 * u); ctx.stroke();
+    return;
   }
+
+  if (style === 'ponytail' || style === 'bun') {
+    crown();
+    lock(-1, 6.2); lock(1, 6.2);
+    if (style === 'bun') {
+      ctx.beginPath(); ctx.arc(sx, yy - 15.2 * u, 2.7 * u, 0, Math.PI * 2); ctx.fill();
+      ctx.fillStyle = 'rgba(255,240,220,0.28)';
+      ctx.beginPath(); ctx.arc(sx - 0.9 * u, yy - 16 * u, 1 * u, 0, Math.PI * 2); ctx.fill();
+    } else {
+      ctx.fillStyle = hairG;
+      ctx.beginPath(); ctx.moveTo(sx + 5 * u, yy - 8 * u);
+      ctx.quadraticCurveTo(sx + 10 * u, yy - 4 * u, sx + 7 * u, yy + 2 * u);
+      ctx.quadraticCurveTo(sx + 11 * u, yy - 3 * u, sx + 8 * u, yy - 8 * u);
+      ctx.closePath(); ctx.fill();
+      ctx.strokeStyle = 'rgba(255,240,220,0.32)'; ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(sx + 6.2 * u, yy - 6.5 * u); ctx.quadraticCurveTo(sx + 9.5 * u, yy - 3 * u, sx + 7.3 * u, yy); ctx.stroke();
+    }
+  } else if (style === 'long' || style === 'straight') {
+    crown();
+    lock(-1, girl ? 15 : 10); lock(1, girl ? 15 : 10);
+  } else {
+    // короткие (по умолчанию)
+    crown();
+    lock(-1, 6.8); lock(1, 6.8);
+    if (!girl) {
+      ctx.fillStyle = hairG;
+      ctx.beginPath(); ctx.ellipse(sx, yy - 12.5 * u, 5.6 * u, 1.7 * u, 0, 0, Math.PI); ctx.fill();
+    }
+  }
+
+  // общий тёплый блик-прядь по макушке
+  ctx.strokeStyle = 'rgba(255,240,220,0.32)'; ctx.lineWidth = 0.9 * u; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(sx - 4 * u, yy - 14 * u); ctx.quadraticCurveTo(sx, yy - 15.7 * u, sx + 3.8 * u, yy - 13.9 * u); ctx.stroke();
 }
 
 function drawHat(ctx, x, y, u, hat) {
@@ -865,34 +892,41 @@ export function drawNPC(ctx, sx, sy, T, pal, phase) {
   // мягкая тень
   softShadow(ctx, sx, sy + 11 * u, 8 * u, 4 * u, 0.2);
 
-  // ноги с объёмом + обувь
-  const legColor = shade(pal.skin, -0.12);
+  // ноги — овалы, без углов
+  const legColor = shade(pal.skin, -0.1);
   for (const side of [-1, 1]) {
-    const lx = sx + side * 2.75 * u;
+    const lx = sx + side * 2.7 * u;
     const lg = ctx.createLinearGradient(lx - 1.9 * u, 0, lx + 1.9 * u, 0);
-    lg.addColorStop(0, shade(legColor, -0.08)); lg.addColorStop(0.5, shade(legColor, 0.06)); lg.addColorStop(1, shade(legColor, -0.08));
+    lg.addColorStop(0, shade(legColor, -0.1)); lg.addColorStop(0.5, shade(legColor, 0.12)); lg.addColorStop(1, shade(legColor, -0.1));
     ctx.fillStyle = lg;
-    rr(ctx, lx - 1.75 * u, yy + 6 * u, 3.5 * u, 5 * u, 1.5); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(lx, yy + 8.5 * u, 1.8 * u, 2.9 * u, 0, 0, Math.PI * 2); ctx.fill();
     ctx.fillStyle = shade(pal.shirt, -0.35);
-    rr(ctx, lx - 1.9 * u, yy + 9.6 * u, 3.9 * u, 1.7 * u, 1); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(lx, yy + 10.9 * u, 2 * u, 1.3 * u, 0, 0, Math.PI * 2); ctx.fill();
   }
 
-  // тело — объёмный градиент + мягкая складка-тень
+  // тело — мягкий bezier-силуэт вместо прямоугольника
   const ng = ctx.createLinearGradient(sx - 6 * u, 0, sx + 6 * u, 0);
-  ng.addColorStop(0, shade(pal.shirt, -0.14)); ng.addColorStop(0.45, shade(pal.shirt, 0.08)); ng.addColorStop(0.55, shade(pal.shirt, 0.08)); ng.addColorStop(1, shade(pal.shirt, -0.14));
+  ng.addColorStop(0, shade(pal.shirt, -0.14)); ng.addColorStop(0.45, shade(pal.shirt, 0.1)); ng.addColorStop(0.55, shade(pal.shirt, 0.1)); ng.addColorStop(1, shade(pal.shirt, -0.14));
   ctx.fillStyle = ng;
-  rr(ctx, sx - 6 * u, yy - 1 * u, 12 * u, 9 * u, 2); ctx.fill();
-  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.18;
+  ctx.beginPath();
+  ctx.moveTo(sx - 5.6 * u, yy - 0.6 * u);
+  ctx.bezierCurveTo(sx - 6.6 * u, yy + 2.4 * u, sx - 6.4 * u, yy + 6 * u, sx - 5.6 * u, yy + 7.8 * u);
+  ctx.quadraticCurveTo(sx, yy + 9 * u, sx + 5.6 * u, yy + 7.8 * u);
+  ctx.bezierCurveTo(sx + 6.4 * u, yy + 6 * u, sx + 6.6 * u, yy + 2.4 * u, sx + 5.6 * u, yy - 0.6 * u);
+  ctx.quadraticCurveTo(sx, yy + 0.6 * u, sx - 5.6 * u, yy - 0.6 * u);
+  ctx.closePath(); ctx.fill();
+  ctx.save(); ctx.globalCompositeOperation = 'multiply'; ctx.globalAlpha = 0.16;
   ctx.strokeStyle = shade(pal.shirt, -0.3); ctx.lineWidth = 1; ctx.lineCap = 'round';
-  ctx.beginPath(); ctx.moveTo(sx - 2 * u, yy + 0.5 * u); ctx.lineTo(sx - 2.6 * u, yy + 7.5 * u); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sx + 2 * u, yy + 0.5 * u); ctx.lineTo(sx + 2.6 * u, yy + 7.5 * u); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx - 1.8 * u, yy + 0.8 * u); ctx.quadraticCurveTo(sx - 2.6 * u, yy + 4 * u, sx - 2.6 * u, yy + 7.2 * u); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx + 1.8 * u, yy + 0.8 * u); ctx.quadraticCurveTo(sx + 2.6 * u, yy + 4 * u, sx + 2.6 * u, yy + 7.2 * u); ctx.stroke();
   ctx.restore();
-  // плечи с бликом
-  const nshG = ctx.createLinearGradient(0, yy - 2.5 * u, 0, yy + 0.3 * u);
-  nshG.addColorStop(0, shade(pal.shirt, 0.18)); nshG.addColorStop(1, shade(pal.shirt, 0.02));
+  // плечи — овал с тёплым рим-лайтом
+  const nshG = ctx.createLinearGradient(0, yy - 2.7 * u, 0, yy + 0.1 * u);
+  nshG.addColorStop(0, shade(pal.shirt, 0.2)); nshG.addColorStop(1, shade(pal.shirt, 0.02));
   ctx.fillStyle = nshG;
-  rr(ctx, sx - 7 * u, yy - 2.5 * u, 14 * u, 2.8 * u, 2); ctx.fill();
-  rimLight(ctx, () => rr(ctx, sx - 7 * u, yy - 2.5 * u, 14 * u, 2.8 * u, 2), 0.22);
+  ctx.beginPath(); ctx.ellipse(sx, yy - 1.3 * u, 7.3 * u, 1.9 * u, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(255,240,220,0.28)'; ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.ellipse(sx, yy - 1.3 * u, 7.3 * u, 1.9 * u, 0, Math.PI, Math.PI * 2); ctx.stroke();
 
   // шея
   ctx.fillStyle = shade(pal.skin, -0.05);
@@ -905,15 +939,22 @@ export function drawNPC(ctx, sx, sy, T, pal, phase) {
   ctx.fillStyle = nhg;
   ctx.beginPath(); ctx.ellipse(sx, yy - 6 * u, 6.2 * u, 6.4 * u, 0, 0, Math.PI * 2); ctx.fill();
 
-  // волосы NPC с объёмным градиентом и бликом
+  // волосы NPC с объёмным градиентом — течные пряди вместо блоков
   const nHairG = ctx.createLinearGradient(sx - 5.5 * u, yy - 13 * u, sx + 4.5 * u, yy - 4 * u);
-  nHairG.addColorStop(0, shade(pal.hair, 0.28)); nHairG.addColorStop(0.4, shade(pal.hair, 0.02));
-  nHairG.addColorStop(1, shade(pal.hair, -0.22));
+  nHairG.addColorStop(0, shade(pal.hair, 0.3)); nHairG.addColorStop(0.4, shade(pal.hair, 0.04));
+  nHairG.addColorStop(1, shade(pal.hair, -0.2));
   ctx.fillStyle = nHairG;
-  ctx.beginPath(); ctx.arc(sx, yy - 8.8 * u, 6.4 * u, Math.PI, 0); ctx.fill();
-  ctx.fillRect(sx - 6.4 * u, yy - 10.2 * u, 2.5 * u, 5.8 * u);
-  ctx.fillRect(sx + 3.9 * u, yy - 10.2 * u, 2.5 * u, 5.8 * u);
-  ctx.strokeStyle = 'rgba(255,255,255,0.26)'; ctx.lineWidth = 0.8 * u; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.ellipse(sx, yy - 9.3 * u, 6.4 * u, 5 * u, 0, Math.PI, 0); ctx.fill();
+  for (const side of [-1, 1]) {
+    const x0 = sx + side * 6 * u, y0 = yy - 9 * u;
+    const xE = sx + side * 4.6 * u, yE = y0 + 6 * u;
+    ctx.beginPath();
+    ctx.moveTo(x0, y0);
+    ctx.bezierCurveTo(x0 + side * 1.2 * u, y0 + 2.4 * u, xE + side * 1.4 * u, yE - 1.8 * u, xE, yE);
+    ctx.quadraticCurveTo(x0 - side * 1.2 * u, (y0 + yE) / 2, x0 - side * 1.6 * u, y0 + 1.2 * u);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.strokeStyle = 'rgba(255,240,220,0.3)'; ctx.lineWidth = 0.8 * u; ctx.lineCap = 'round';
   ctx.beginPath(); ctx.moveTo(sx - 3.6 * u, yy - 13.6 * u); ctx.quadraticCurveTo(sx, yy - 14.9 * u, sx + 3.2 * u, yy - 13.4 * u); ctx.stroke();
 
   // румянец

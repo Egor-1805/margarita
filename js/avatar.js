@@ -162,6 +162,7 @@ export function avatarSVG(look = {}) {
   const shoe = girl ? '#c44e7a' : '#5a4636';
   const id = 'av' + (avatarIdSeq++);
   const skinLight = shadeHex(L.skin, 0.22), skinDark = shadeHex(L.skin, -0.08);
+  const skinWarm = shadeHex(L.skin, 0.08); // тёплый акварельный полутон между бликом и базой
   const shirtLight = shadeHex(L.shirt, 0.16), shirtDark = shadeHex(L.shirt, -0.14);
   const hairLight = shadeHex(L.hairColor, 0.26), hairDark = shadeHex(L.hairColor, -0.22);
 
@@ -191,8 +192,8 @@ export function avatarSVG(look = {}) {
     <circle cx="${cx + 1.2}" cy="48.2" r="0.55" fill="rgba(255,255,255,.75)"/>`;
   return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="avatar-svg" preserveAspectRatio="xMidYMid meet">
     <defs>
-      <radialGradient id="${id}skin" cx="42%" cy="30%" r="75%">
-        <stop offset="0%" stop-color="${skinLight}"/><stop offset="55%" stop-color="${L.skin}"/><stop offset="100%" stop-color="${skinDark}"/>
+      <radialGradient id="${id}skin" cx="40%" cy="28%" r="78%">
+        <stop offset="0%" stop-color="${skinLight}"/><stop offset="35%" stop-color="${skinWarm}"/><stop offset="70%" stop-color="${L.skin}"/><stop offset="100%" stop-color="${skinDark}"/>
       </radialGradient>
       <linearGradient id="${id}dress" x1="0%" y1="0%" x2="100%" y2="0%">
         <stop offset="0%" stop-color="${shirtDark}"/><stop offset="45%" stop-color="${shirtLight}"/><stop offset="55%" stop-color="${shirtLight}"/><stop offset="100%" stop-color="${shirtDark}"/>
@@ -226,6 +227,7 @@ export function avatarSVG(look = {}) {
     ${hairBack(L).replace(new RegExp(L.hairColor, 'g'), `url(#${id}hair)`)}
     <circle cx="60" cy="46" r="27" fill="url(#${id}skin)"/>
     <ellipse cx="49" cy="41" rx="8" ry="5" fill="#fff" opacity=".14"/>
+    <path d="M35 30 A27 27 0 0 1 85 30" fill="none" stroke="#fff3df" stroke-width="1.4" stroke-linecap="round" opacity=".35"/>
     ${hairFront(L).replace(new RegExp(L.hairColor, 'g'), `url(#${id}hair)`)}
     <g stroke="#5a4636" stroke-width="1.6" stroke-linecap="round" opacity=".8">
       <path d="M45 41 Q48 39 51 41"/><path d="M69 41 Q72 39 75 41"/>
