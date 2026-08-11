@@ -15,6 +15,18 @@ export const DEFAULT_LOOK = {
 
 const cir = (x, y, r, fill) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>`;
 
+// затемнить/осветлить hex-цвет — как shade() в sprites.js, для градиентов SVG-аватара
+function shadeHex(hex, amt) {
+  const c = hex.replace('#', '');
+  let r = parseInt(c.slice(0, 2), 16), g = parseInt(c.slice(2, 4), 16), b = parseInt(c.slice(4, 6), 16);
+  r = Math.max(0, Math.min(255, Math.round(r + amt * 255)));
+  g = Math.max(0, Math.min(255, Math.round(g + amt * 255)));
+  b = Math.max(0, Math.min(255, Math.round(b + amt * 255)));
+  return `rgb(${r},${g},${b})`;
+}
+
+let avatarIdSeq = 0;
+
 // ---------- волосы: задний слой (за головой) ----------
 function hairBack(L) {
   const c = L.hairColor;
@@ -148,10 +160,19 @@ export function avatarSVG(look = {}) {
   const girl = L.gender !== 'm';
   const pants = '#46587f';
   const shoe = girl ? '#c44e7a' : '#5a4636';
-  // тело: девочка — платье, мальчик — рубашка + штаны
+  const id = 'av' + (avatarIdSeq++);
+  const skinLight = shadeHex(L.skin, 0.22), skinDark = shadeHex(L.skin, -0.08);
+  const shirtLight = shadeHex(L.shirt, 0.16), shirtDark = shadeHex(L.shirt, -0.14);
+  const hairLight = shadeHex(L.hairColor, 0.26), hairDark = shadeHex(L.hairColor, -0.22);
+
+  // тело: девочка — платье с объёмным градиентом, мальчик — рубашка + штаны
   const body = girl
-    ? `<path d="M33 80 H87 L94 120 Q60 132 26 120 Z" fill="${L.shirt}"/>`
-    : `<rect x="34" y="80" width="52" height="30" rx="9" fill="${L.shirt}"/>
+    ? `<path d="M33 80 H87 L94 120 Q60 132 26 120 Z" fill="url(#${id}dress)"/>
+       <path d="M42 84 L38 118" stroke="rgba(0,0,0,.08)" stroke-width="1.6" fill="none"/>
+       <path d="M78 84 L82 118" stroke="rgba(0,0,0,.08)" stroke-width="1.6" fill="none"/>`
+    : `<rect x="34" y="80" width="52" height="30" rx="9" fill="url(#${id}shirt)"/>
+       <circle cx="60" cy="90" r="1.6" fill="${shadeHex(L.shirt, -0.3)}"/>
+       <circle cx="60" cy="96" r="1.6" fill="${shadeHex(L.shirt, -0.3)}"/>
        <rect x="36" y="106" width="48" height="14" rx="4" fill="${pants}"/>`;
   const legs = girl
     ? `<rect x="50" y="118" width="8" height="20" rx="4" fill="${L.skin}"/><rect x="62" y="118" width="8" height="20" rx="4" fill="${L.skin}"/>`
@@ -160,27 +181,56 @@ export function avatarSVG(look = {}) {
   const lashes = girl ? `<g stroke="#3a2a22" stroke-width="1.4" stroke-linecap="round">
       <line x1="46" y1="43" x2="49" y2="45"/><line x1="74" y1="43" x2="71" y2="45"/></g>` : '';
   const mouth = girl
-    ? `<path d="M52 57 Q60 64 68 57" stroke="#c44e7a" stroke-width="2.6" fill="none" stroke-linecap="round"/>`
+    ? `<path d="M52 57 Q60 64 68 57" fill="url(#${id}lip)"/><path d="M53 58 Q60 62.5 67 58" stroke="#b5566f" stroke-width="1.4" fill="none" stroke-linecap="round"/>`
     : `<path d="M53 57 Q60 62 67 57" stroke="#a9603f" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
-  const cheeks = girl
-    ? `<circle cx="45" cy="54" r="3.8" fill="#f59ab0" opacity=".55"/><circle cx="75" cy="54" r="3.8" fill="#f59ab0" opacity=".55"/>` : '';
+  const cheeks = `<circle cx="45" cy="53" r="4.2" fill="url(#${id}blush)"/><circle cx="75" cy="53" r="4.2" fill="url(#${id}blush)"/>`;
+  const eyeFill = (cx) => `<ellipse cx="${cx}" cy="47" rx="4.6" ry="4" fill="#fdfdfd"/>
+    <circle cx="${cx}" cy="47" r="3.2" fill="url(#${id}iris)"/>
+    <circle cx="${cx}" cy="47" r="1.5" fill="#1a1210"/>
+    <circle cx="${cx - 1.1}" cy="45.5" r="1.1" fill="#fff"/>
+    <circle cx="${cx + 1.2}" cy="48.2" r="0.55" fill="rgba(255,255,255,.75)"/>`;
   return `<svg viewBox="0 0 120 150" xmlns="http://www.w3.org/2000/svg" class="avatar-svg" preserveAspectRatio="xMidYMid meet">
+    <defs>
+      <radialGradient id="${id}skin" cx="42%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="${skinLight}"/><stop offset="55%" stop-color="${L.skin}"/><stop offset="100%" stop-color="${skinDark}"/>
+      </radialGradient>
+      <linearGradient id="${id}dress" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${shirtDark}"/><stop offset="45%" stop-color="${shirtLight}"/><stop offset="55%" stop-color="${shirtLight}"/><stop offset="100%" stop-color="${shirtDark}"/>
+      </linearGradient>
+      <linearGradient id="${id}shirt" x1="0%" y1="0%" x2="100%" y2="0%">
+        <stop offset="0%" stop-color="${shirtDark}"/><stop offset="50%" stop-color="${shirtLight}"/><stop offset="100%" stop-color="${shirtDark}"/>
+      </linearGradient>
+      <linearGradient id="${id}hair" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="${hairLight}"/><stop offset="45%" stop-color="${L.hairColor}"/><stop offset="100%" stop-color="${hairDark}"/>
+      </linearGradient>
+      <radialGradient id="${id}iris" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="${hairLight}"/><stop offset="60%" stop-color="${L.hairColor}"/><stop offset="100%" stop-color="${hairDark}"/>
+      </radialGradient>
+      <linearGradient id="${id}lip" x1="0%" y1="0%" x2="0%" y2="100%">
+        <stop offset="0%" stop-color="#f0a3b4"/><stop offset="100%" stop-color="#d9788e"/>
+      </linearGradient>
+      <radialGradient id="${id}blush" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ff9fae" stop-opacity=".55"/><stop offset="100%" stop-color="#ff9fae" stop-opacity="0"/>
+      </radialGradient>
+    </defs>
     <ellipse cx="60" cy="144" rx="30" ry="6" fill="#000" opacity=".12"/>
     ${legs}
     <ellipse cx="52" cy="139" rx="7" ry="4.5" fill="${shoe}"/>
     <ellipse cx="68" cy="139" rx="7" ry="4.5" fill="${shoe}"/>
-    <rect x="29" y="82" width="11" height="32" rx="5.5" fill="${L.shirt}"/>
-    <rect x="80" y="82" width="11" height="32" rx="5.5" fill="${L.shirt}"/>
-    <circle cx="34" cy="114" r="5.5" fill="${L.skin}"/>
-    <circle cx="86" cy="114" r="5.5" fill="${L.skin}"/>
+    <rect x="29" y="82" width="11" height="32" rx="5.5" fill="url(#${id}shirt)"/>
+    <rect x="80" y="82" width="11" height="32" rx="5.5" fill="url(#${id}shirt)"/>
+    <circle cx="34" cy="114" r="5.5" fill="url(#${id}skin)"/>
+    <circle cx="86" cy="114" r="5.5" fill="url(#${id}skin)"/>
     ${body}
     <rect x="53" y="66" width="14" height="14" fill="${L.skin}"/>
-    ${hairBack(L)}
-    <circle cx="60" cy="46" r="27" fill="${L.skin}"/>
-    ${hairFront(L)}
-    <circle cx="51" cy="47" r="3.2" fill="#3a2a22"/>
-    <circle cx="69" cy="47" r="3.2" fill="#3a2a22"/>
-    <circle cx="52" cy="46" r="1" fill="#fff"/><circle cx="70" cy="46" r="1" fill="#fff"/>
+    ${hairBack(L).replace(new RegExp(L.hairColor, 'g'), `url(#${id}hair)`)}
+    <circle cx="60" cy="46" r="27" fill="url(#${id}skin)"/>
+    <ellipse cx="49" cy="41" rx="8" ry="5" fill="#fff" opacity=".14"/>
+    ${hairFront(L).replace(new RegExp(L.hairColor, 'g'), `url(#${id}hair)`)}
+    <g stroke="#5a4636" stroke-width="1.6" stroke-linecap="round" opacity=".8">
+      <path d="M45 41 Q48 39 51 41"/><path d="M69 41 Q72 39 75 41"/>
+    </g>
+    ${eyeFill(51)}${eyeFill(69)}
     ${lashes}${mouth}${cheeks}
     ${accSVG(L)}
     ${hatSVG(L)}

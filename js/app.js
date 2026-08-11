@@ -323,7 +323,7 @@ function showGenderPicker() {
 const TUTORIAL_STEPS = [
   {
     emoji: '👋',
-    text: 'Привет! Я — Лея, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
+    text: 'Привет! Я — Фрея, и помогу тебе выучить язык играючи. Начнём с небольшой экскурсии по моему студенческому городку!',
   },
   {
     emoji: '🏛️',
@@ -416,7 +416,7 @@ function runTutorial() {
 
       ov.querySelector('.tut-inner').innerHTML = `
         <div class="tut-aya">${ayaSVG}</div>
-        <div class="tut-name">Лея</div>
+        <div class="tut-name">Фрея</div>
         <div class="tut-bubble">
           <div class="tut-emoji">${s.emoji}</div>
           <p class="tut-text">${s.text}</p>
@@ -458,14 +458,14 @@ async function talkAya() {
     const g = store.getGame();
     const dayKey = store.todayKey();
     if (g.ayaGiftDay === dayKey) {
-      toast('🌸 Лея улыбается, но бонус уже дала сегодня!');
+      toast('🌸 Фрея улыбается, но бонус уже дала сегодня!');
       return;
     }
     await new Promise((resolve) => {
       const ov = el(`<div class="mg-overlay"><div class="mg-card"><div class="mg-intro" style="text-align:center;padding:2rem 1.5rem">
         <div style="font-size:3.5rem;margin-bottom:.5rem">🌸</div>
-        <h2 style="margin:.25rem 0;font-size:1.4rem">Лея</h2>
-        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Подарок от Леи!</div>
+        <h2 style="margin:.25rem 0;font-size:1.4rem">Фрея</h2>
+        <div style="font-size:1.1rem;margin:1rem 0;color:var(--c-text)">Подарок от Фреи!</div>
         <div style="font-size:2.5rem;font-weight:700;color:#e6b800">🪙 +50</div>
         <button class="mg-btn" id="ayaOk" style="margin-top:1.5rem">Спасибо! 😊</button>
       </div></div></div>`);
@@ -475,7 +475,7 @@ async function talkAya() {
     g.ayaGiftDay = dayKey;
     store.addRewards(50, 0);
     store.save(); hud();
-    toast('🌸 +50 🪙 от Леи!');
+    toast('🌸 +50 🪙 от Фреи!');
   } finally { world.resume(); }
 }
 
