@@ -25,6 +25,13 @@ function fillRR(ctx, x, y, w, h, r, color) {
   ctx.fill();
 }
 
+// детерминированный псевдослучайный хэш по тайлу — чтобы текстура травы не мерцала между кадрами
+function tileHash(tx, ty, salt) {
+  let h = (tx * 374761393 + ty * 668265263 + salt * 97531) | 0;
+  h = (h ^ (h >>> 13)) * 1274126177;
+  return ((h ^ (h >>> 16)) >>> 0) / 4294967296;
+}
+
 // ---------- земля ----------
 export function drawGround(ctx, cam, vw, vh, T) {
   const grad = ctx.createLinearGradient(0, 0, 0, vh);
@@ -35,9 +42,39 @@ export function drawGround(ctx, cam, vw, vh, T) {
   const x0 = Math.floor(cam.x / T), y0 = Math.floor(cam.y / T);
   for (let ty = y0 - 1; ty < y0 + vh / T + 1; ty++) {
     for (let tx = x0 - 1; tx < x0 + vw / T + 1; tx++) {
+      const px = tx * T - cam.x, py = ty * T - cam.y;
       if (((tx + ty) & 1) === 0) {
         ctx.fillStyle = 'rgba(255,255,255,0.04)';
-        ctx.fillRect(tx * T - cam.x, ty * T - cam.y, T, T);
+        ctx.fillRect(px, py, T, T);
+      }
+      // лёгкая вариация тона тайла — убирает однородность газона
+      const shade = tileHash(tx, ty, 1);
+      ctx.fillStyle = shade > 0.72 ? 'rgba(30,70,20,0.05)' : shade < 0.16 ? 'rgba(255,255,255,0.05)' : 'transparent';
+      if (shade > 0.72 || shade < 0.16) ctx.fillRect(px, py, T, T);
+      // травинки-пучки — 0-2 на тайл, позиция и наклон детерминированы
+      const tuftN = tileHash(tx, ty, 2) > 0.55 ? (tileHash(tx, ty, 3) > 0.8 ? 2 : 1) : 0;
+      for (let i = 0; i < tuftN; i++) {
+        const fx = px + 6 + tileHash(tx, ty, 10 + i) * (T - 12);
+        const fy = py + 8 + tileHash(tx, ty, 20 + i) * (T - 14);
+        const lean = (tileHash(tx, ty, 30 + i) - 0.5) * 3;
+        const bh = T * (0.1 + tileHash(tx, ty, 40 + i) * 0.06);
+        ctx.strokeStyle = 'rgba(40,95,35,0.35)'; ctx.lineWidth = 1.2; ctx.lineCap = 'round';
+        for (const dx of [-2, 0, 2]) {
+          ctx.beginPath(); ctx.moveTo(fx + dx, fy); ctx.lineTo(fx + dx + lean, fy - bh); ctx.stroke();
+        }
+      }
+      // редкие полевые цветочки
+      if (tileHash(tx, ty, 5) > 0.93) {
+        const fx = px + 6 + tileHash(tx, ty, 6) * (T - 12);
+        const fy = py + 6 + tileHash(tx, ty, 7) * (T - 12);
+        const hue = tileHash(tx, ty, 8) > 0.5 ? '#fff6b8' : '#ffd6ec';
+        ctx.fillStyle = hue;
+        for (let k = 0; k < 4; k++) {
+          const a = (k / 4) * Math.PI * 2;
+          ctx.beginPath(); ctx.ellipse(fx + Math.cos(a) * 2.2, fy + Math.sin(a) * 2.2, 1.6, 1.1, a, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = '#f4c430';
+        ctx.beginPath(); ctx.arc(fx, fy, 1.3, 0, Math.PI * 2); ctx.fill();
       }
     }
   }
@@ -109,6 +146,15 @@ export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
   ctx.fillStyle = wallG;
   rr(ctx, sx, sy + T * 0.65, w, h - T * 0.65, [0, 0, 4, 4]); ctx.fill();
 
+  // горизонтальная обшивка стен — тонкие линии для фактуры
+  ctx.save();
+  rr(ctx, sx, sy + T * 0.65, w, h - T * 0.65, [0, 0, 4, 4]); ctx.clip();
+  ctx.strokeStyle = 'rgba(0,0,0,0.04)'; ctx.lineWidth = 1;
+  for (let ly = sy + T * 0.65 + 8; ly < sy + h; ly += 8) {
+    ctx.beginPath(); ctx.moveTo(sx, ly); ctx.lineTo(sx + w, ly); ctx.stroke();
+  }
+  ctx.restore();
+
   // нижний плинтус
   ctx.fillStyle = shade('#fbf3e6', -0.1);
   rr(ctx, sx, sy + h - 9, w, 9, [0, 0, 4, 4]); ctx.fill();
@@ -118,6 +164,16 @@ export function drawBuilding(ctx, sx, sy, w, h, loc, T, glow) {
   roofG.addColorStop(0, light); roofG.addColorStop(1, loc.color);
   ctx.fillStyle = roofG;
   rr(ctx, sx - 4, sy, w + 8, T * 0.82, [5, 5, 0, 0]); ctx.fill();
+  // черепица — диагональная штриховка поверх крыши
+  ctx.save();
+  rr(ctx, sx - 4, sy, w + 8, T * 0.82, [5, 5, 0, 0]); ctx.clip();
+  ctx.strokeStyle = 'rgba(0,0,0,0.08)'; ctx.lineWidth = 1;
+  for (let lx = sx - w; lx < sx + w + 8; lx += 7) {
+    ctx.beginPath(); ctx.moveTo(lx, sy); ctx.lineTo(lx + T * 0.5, sy + T * 0.82); ctx.stroke();
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+  ctx.beginPath(); ctx.moveTo(sx - 4, sy + 2); ctx.lineTo(sx + w + 4, sy + 2); ctx.stroke();
+  ctx.restore();
   // карниз под крышей
   ctx.fillStyle = dark;
   ctx.fillRect(sx - 4, sy + T * 0.7, w + 8, 5);
@@ -675,6 +731,15 @@ export function drawTree(ctx, sx, sy, T) {
   // блик
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.beginPath(); ctx.arc(sx - T * 0.12, sy - T * 0.3, T * 0.13, 0, Math.PI * 2); ctx.fill();
+  // отдельные листья-мазки для объёма кроны
+  ctx.fillStyle = 'rgba(255,255,255,0.16)';
+  for (let i = 0; i < 6; i++) {
+    const a = tileHash((sx | 0), (sy | 0), i) * Math.PI * 2;
+    const r = T * (0.16 + tileHash((sx | 0), (sy | 0), i + 30) * 0.2);
+    ctx.beginPath();
+    ctx.ellipse(sx + Math.cos(a) * r, sy - T * 0.12 + Math.sin(a) * r * 0.7, T * 0.05, T * 0.03, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
 }
 
 // ---------- сундук ----------
@@ -722,6 +787,13 @@ export function drawBush(ctx, sx, sy, T) {
   ctx.beginPath(); ctx.arc(sx + T * 0.13, sy - T * 0.08, T * 0.18, 0, Math.PI * 2); ctx.fill();
   ctx.fillStyle = 'rgba(255,255,255,0.12)';
   ctx.beginPath(); ctx.arc(sx - T * 0.1, sy - T * 0.12, T * 0.1, 0, Math.PI * 2); ctx.fill();
+  // мелкие тёмные проколы — имитация листвы
+  ctx.fillStyle = 'rgba(0,0,0,0.08)';
+  for (let i = 0; i < 4; i++) {
+    const a = tileHash((sx | 0), (sy | 0), i + 50) * Math.PI * 2;
+    const r = T * 0.16 * tileHash((sx | 0), (sy | 0), i + 60);
+    ctx.beginPath(); ctx.arc(sx + Math.cos(a) * r, sy + Math.sin(a) * r, T * 0.03, 0, Math.PI * 2); ctx.fill();
+  }
 }
 
 export function drawBench(ctx, sx, sy, T) {

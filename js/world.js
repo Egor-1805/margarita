@@ -35,7 +35,7 @@ export function createWorld(canvas, look, handlers) {
   }));
 
   // Ая — секретный NPC, меняет место каждый день
-  const AYA_SPOTS = [[6,5],[18,8],[32,12],[10,22],[38,18],[24,6],[14,28],[30,24],[8,16],[22,20]];
+  const AYA_SPOTS = [[9,6],[18,8],[32,12],[11,22],[38,18],[26,6],[14.5,30],[30,24],[8,16],[22,20]];
   const ayaIdx = Math.floor(Date.now() / 86400000) % AYA_SPOTS.length;
   const aya = { x: AYA_SPOTS[ayaIdx][0], y: AYA_SPOTS[ayaIdx][1], phase: 0,
     pal: { skin: '#fbe3c9', hair: '#14100c', shirt: '#ffb3c7' } };
